@@ -39,5 +39,3 @@ tests/
 .coverage
 htmlcov/
 
-# Файлы uv
-uv.lock
