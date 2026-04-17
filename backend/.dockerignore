@@ -1,0 +1,43 @@
+# Виртуальные окружения
+.venv
+venv
+env
+
+# Файлы Python
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# Git
+.git
+.gitignore
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose.yml
+
+# Логи
+*.log
+logs/
+
+# Переменные окружения
+.env
+.env.local
+
+# Тесты
+tests/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Файлы uv
+uv.lock
