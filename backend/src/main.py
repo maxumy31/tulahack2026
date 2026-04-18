@@ -47,3 +47,7 @@ async def get_answer(request: ChatRequest) -> dict:
             status_code=HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Ошибка обработки запроса: {str(e)}"
         )
+
+@app.get("/img/{img_id}")
+async def get_img(img_id: str) -> dict:
+    pass
