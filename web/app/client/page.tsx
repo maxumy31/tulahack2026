@@ -5,9 +5,10 @@ import { useEffect, useRef, useState } from "react";
 import OperatorMessage from "./components/OperatorMessage";
 import SendMessageButton from "./components/SendMessageButton";
 import UserMessage from "./components/UserMessage";
-import { CloseTask, GetAllMessages, SendUserMessage, StartNewChatSession } from "@/server/Chat";
+import { CloseTask, GetAllMessages, RequestOperator, SendUserMessage, StartNewChatSession } from "@/server/Chat";
 import { useRouter } from "next/navigation";
 import WaitingMessage from "./../components/WaitingMessage";
+import ComplexityModal from "./components/ComplexityModal";
 
 
 export default function ClientPage({ }) {
@@ -71,7 +72,7 @@ export default function ClientPage({ }) {
     }
 
     const handleRequestOperator = (complexity: number) => {
-        requestOperator(chatState.session, complexity);
+        RequestOperator(chatState.session, complexity);
         setChatState(prev => ({
             ...prev,
             operatorRequested: true
@@ -186,7 +187,7 @@ export default function ClientPage({ }) {
                 </div>
             </div >
             
-            <ComplexityModal 
+            <ComplexityModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 onConfirm={handleRequestOperator}

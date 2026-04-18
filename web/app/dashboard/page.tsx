@@ -5,8 +5,10 @@ import { redirect, useRouter } from 'next/navigation';
 import RAGToggle from './components/RAGToggle';
 import GenerateReportButton from './components/GenerateReportButton';
 import OperatorHeader from '../components/OperatorHeader';
-import { CountAllClosedSessions, CountAllOpenSessions, CountAllSessions, GetClosingStats, GetMessageCountDistribution } from '@/server/Chart';
+import { CountAllClosedSessions, CountAllOpenSessions, CountAllSessions, GetAverageChatLength, GetClosingStats, GetDailyClosedSessionsCount, GetDailyCreatedSessionsCount, GetMessageCountDistribution } from '@/server/Chart';
 import StatusPieChart from './components/StatusPieChart';
+import DashboardContent from './components/DashboardContent';
+import StatsCard from './components/StatsCard';
 
 
 export default function DashboardPage() {
@@ -24,6 +26,10 @@ export default function DashboardPage() {
         value: number
     }[]>();
 
+    const [openedTicketsPerDay, setOpenedTicketsPerDay] = useState<number>(0);
+    const [closedTicketsPerDay, setClosedTicketsPerDay] = useState<number>(0);
+    const [avgChatLength, setAvgChatLength] = useState<string>("0");
+
     async function SyncData() {
         const currentTotalTickets = await CountAllSessions() || 0;
         const currentOpenTickets = await CountAllOpenSessions() || 0;
@@ -38,6 +44,15 @@ export default function DashboardPage() {
 
         const closedDistributionByMessages = await GetMessageCountDistribution();
         setClosedDistributionByMessages(closedDistributionByMessages);
+
+        const openedTicketsPerDay = await GetDailyCreatedSessionsCount();
+        setOpenedTicketsPerDay(openedTicketsPerDay);
+
+        const closedTicketsPerDay = await GetDailyClosedSessionsCount();
+        setClosedTicketsPerDay(closedTicketsPerDay);
+
+        const avgChatLength = await GetAverageChatLength();
+        setAvgChatLength(avgChatLength);
     }
 
     useEffect(() => {
@@ -86,19 +101,26 @@ export default function DashboardPage() {
                     <div className="lg:col-span-3">
                         <div className="bg-white rounded-lg border border-gray-200 p-6">
                             <h2 className="text-lg font-semibold text-gray-900 mb-6">Детальная статистика</h2>
-
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                                <StatsCard count={openedTicketsPerDay} title="Поступило заявок за день" />
+                                <StatsCard count={closedTicketsPerDay} title="Закрыто заявок за день" />
+                                <StatsCard count={Number(avgChatLength)} title="Средняя длина чата" />
+                            </div>
 
                         </div>
+
                     </div>
 
                     <div className="lg:col-span-1 space-y-6">
                         <RAGToggle />
                         <GenerateReportButton />
                     </div>
+
+
                 </div>
 
                 <div className="mt-8 mb-4 grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="w-full h-[350px]"> {/* Фиксируем высоту здесь */}
+                    <div className="w-full h-[350px]">
                         <StatusPieChart
                             title="Соотношение заявок закрытых ботом и оператором"
                             data={
