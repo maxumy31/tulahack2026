@@ -48,7 +48,16 @@ services:
       - ./backend:/app
       - /app/.venv
     environment:
+      DATABASE_URL: postgresql+asyncpg://myuser:mypassword@db:5432/mydatabase
       PYTHONUNBUFFERED: 1
+    command: >
+      sh -c "
+        uv run python scripts/init_db.py &&
+        uv run uvicorn src.main:app --host 0.0.0.0 --port 8000
+      "
+    depends_on:
+      db:
+        condition: service_healthy
 
 volumes:
   db_data:

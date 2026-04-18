@@ -1,12 +1,13 @@
 from fastapi import FastAPI, HTTPException, status
+from fastapi.responses import Response
 from starlette.status import HTTP_500_INTERNAL_SERVER_ERROR
 
 from src.schemas.chat import ChatRequest
 from src.services.rag import Rag
+from src.services.image_service import ImageService  # ✅ новый импорт
+from src.database.database import SessionDep
 import logging
 from fastapi.middleware.cors import CORSMiddleware
-from pathlib import Path
-from fastapi.responses import FileResponse
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -25,6 +26,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 @app.get("/")
 async def root():
     return {
@@ -33,9 +35,11 @@ async def root():
         "health": "/health"
     }
 
+
 @app.get("/health")
 async def health_check():
     return {"status": "ok"}
+
 
 @app.post("/chat_request")
 async def get_answer(request: ChatRequest) -> dict:
@@ -50,24 +54,28 @@ async def get_answer(request: ChatRequest) -> dict:
             detail=f"Ошибка обработки запроса: {str(e)}"
         )
 
+
 @app.get("/img/{img_id}")
-async def get_img(img_id: str) -> FileResponse:
+async def get_img(
+        img_id: str,
+        db: SessionDep
+):
+    """Получение изображения из PostgreSQL"""
+
     logger.info(f"Запрос на картинку: {img_id}")
-    file_path = Path("src") / "data" / "img" / f"{img_id}.png"
 
-    # Для отладки
-    print(f"Ищем файл: {file_path}")
-    print(f"Абсолютный путь: {file_path.absolute()}")
-
-    if ".." in img_id or "/" in img_id or "\\" in img_id:
+    # Валидация имени файла
+    if not ImageService.validate_filename(img_id):
         logger.warning(f"Подозрительный запрос: {img_id}")
         raise HTTPException(status_code=400, detail="Invalid image ID")
 
-    if not file_path.exists():
-        logger.error(f"Ошибка: {img_id} не найдена")
-        raise HTTPException(status_code=404, detail="Image not found")
+    # Сервисный слой
+    image_service = ImageService(db)
+    image = await image_service.get_image_by_filename(f"{img_id}.png")
 
-    return FileResponse(
-        path=file_path,
-        media_type="image/png"
+    # Формируем ответ
+    return Response(
+        content=image.image_data,
+        media_type=image.content_type,
+        headers={"Cache-Control": "public, max-age=86400"}
     )
