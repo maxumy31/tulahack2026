@@ -1,6 +1,5 @@
 'use client'
 import { useEffect, useRef, useState } from "react";
-import OperatorInput from "./components/OperatorInput";
 import Cookies from "js-cookie";
 import Button from "../components/Button";
 import { redirect } from "next/navigation";

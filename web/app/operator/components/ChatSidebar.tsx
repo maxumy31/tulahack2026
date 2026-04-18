@@ -7,7 +7,10 @@ import ActiveTab from "./ActiveTab";
 import ClosedTab from "./ClosedTab";
 import BotTab from "./BotTab";
 
-export default function ChatSidebar({ onChatSelect }: ChatSidebarProps) {
+export default function ChatSidebar({ 
+    onChatSelect,
+    onTabSelect,
+}: ChatSidebarProps) {
 
     async function GetWaitingSessions() {
         const session = await GetAllWaitingSessions();
@@ -24,14 +27,17 @@ export default function ChatSidebar({ onChatSelect }: ChatSidebarProps) {
         setSessions(session);
     }
 
-    const [sessions, setSessions] = useState<string[]>();
+    const [sessions, setSessions] = useState<string[]>([]);
 
 
     type Tab = "active" | "closed" | "bot"
     const [activeTab, setActiveTab] = useState<Tab>("active");
 
     useEffect(() => {
-        console.log(activeTab);
+        (function() {
+            onTabSelect(activeTab);
+            console.log("tab select")
+        })();
         switch (activeTab) {
             case "active":
                 GetWaitingSessions();
@@ -109,4 +115,5 @@ export default function ChatSidebar({ onChatSelect }: ChatSidebarProps) {
 
 interface ChatSidebarProps {
     onChatSelect: (session: string) => void,
+    onTabSelect: (tab: string) => void,
 }

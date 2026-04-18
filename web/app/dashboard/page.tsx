@@ -37,7 +37,7 @@ export default function DashboardPage() {
         return Array.from({ length: 24 }, (_, i) => ({
             hour: i,
             tickets: Math.max(0, Math.round(
-                baseValue * Math.sin((i - 6) * Math.PI / 12) * 0.7 + 
+                baseValue * Math.sin((i - 6) * Math.PI / 12) * 0.7 +
                 Math.random() * baseValue * 0.3
             ))
         }));
@@ -48,36 +48,25 @@ export default function DashboardPage() {
     const closedTickets = stats ? stats.closedHuman + stats.closedBot : 0;
 
     return (
-        <div className="min-h-screen bg-gray-50 p-6">
+        <div className="min-h-screen bg-base-300">
+            <div className="flex flex-row justify-center gap-16 py-1 bg-base-100 border-b">
+                <div className="px-8 py-3 text-black underline">
+                    Чат
+                </div>
+                <div
+                    className="px-8 py-3 text-black hover:underline transition duration-500"
+                >
+                    Статистика
+                </div>
+            </div>
             <div className="max-w-7xl mx-auto">
-                {/* Header */}
-                <div className="mb-10">
+                <div className="mb-10 pt-4">
                     <div className="flex items-center gap-3 mb-4">
-                        <button
-                            onClick={() => router.back()}
-                            className="p-2 hover:bg-gray-200 rounded-lg transition-colors"
-                        >
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                className="h-5 w-5 text-primary"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                            >
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M15 19l-7-7 7-7"
-                                />
-                            </svg>
-                        </button>
                         <h1 className="text-3xl font-bold text-gray-900">Панель управления</h1>
                     </div>
                     <p className="text-gray-600 ml-11">Статистика по заявкам и управление режимом обработки</p>
                 </div>
 
-                {/* Summary Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
                     <button
                         onClick={() => handleScroll('chart-total')}
@@ -102,13 +91,11 @@ export default function DashboardPage() {
                     </button>
                 </div>
 
-                {/* Main content */}
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                    {/* Stats Cards Section */}
                     <div className="lg:col-span-3">
                         <div className="bg-white rounded-lg border border-gray-200 p-6">
                             <h2 className="text-lg font-semibold text-gray-900 mb-6">Детальная статистика</h2>
-                            
+
                             {isLoading ? (
                                 <div className="flex items-center justify-center py-12">
                                     <span className="loading loading-spinner loading-lg text-primary"></span>
@@ -148,7 +135,7 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Chart Section */}
-                <div className="mt-8 space-y-8">
+                <div className="mt-8 space-y-8 mb-4">
                     <ChartCard
                         title="Всего заявок"
                         id="chart-total"

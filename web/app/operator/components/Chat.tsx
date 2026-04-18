@@ -44,7 +44,6 @@ export default function Chat({ session: initialSession, canInteract = true, role
 
     useEffect(() => {
         let isMounted = true;
-        console.log(chatState.session);
 
         const poll = async () => {
             if (!chatState.session || !isMounted) return;
@@ -73,22 +72,20 @@ export default function Chat({ session: initialSession, canInteract = true, role
     }, [chatState.session]);
 
     useEffect(() => {
+        setChatState({ chat: [], session: initialSession || "" });
         initChat();
     }, [initialSession]);
 
     const initChat = async () => {
-        let currentSession = initialSession;
+        if (!initialSession) return;
 
-        if(currentSession === "") return;
-
-        if (role === 'client' && !currentSession) {
-            currentSession = await StartNewChatSession();
+        if (role === 'client' && !initialSession) {
+            const newSession = await StartNewChatSession();
+            return;
         }
-
-        if (currentSession) {
-            const messages = await GetAllMessages(currentSession);
-            setChatState({ session: currentSession, chat: messages });
-        }
+        
+        const messages = await GetAllMessages(initialSession);
+        setChatState({ session: initialSession, chat: messages });
     };
 
     const pollMessages = async () => {
