@@ -5,6 +5,8 @@ from src.schemas.chat import ChatRequest
 from src.services.rag import Rag
 import logging
 from fastapi.middleware.cors import CORSMiddleware
+from pathlib import Path
+from fastapi.responses import FileResponse
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -49,5 +51,23 @@ async def get_answer(request: ChatRequest) -> dict:
         )
 
 @app.get("/img/{img_id}")
-async def get_img(img_id: str) -> dict:
-    pass
+async def get_img(img_id: str) -> FileResponse:
+    logger.info(f"Запрос на картинку: {img_id}")
+    file_path = Path("src") / "data" / "img" / f"{img_id}.png"
+
+    # Для отладки
+    print(f"Ищем файл: {file_path}")
+    print(f"Абсолютный путь: {file_path.absolute()}")
+
+    if ".." in img_id or "/" in img_id or "\\" in img_id:
+        logger.warning(f"Подозрительный запрос: {img_id}")
+        raise HTTPException(status_code=400, detail="Invalid image ID")
+
+    if not file_path.exists():
+        logger.error(f"Ошибка: {img_id} не найдена")
+        raise HTTPException(status_code=404, detail="Image not found")
+
+    return FileResponse(
+        path=file_path,
+        media_type="image/png"
+    )
