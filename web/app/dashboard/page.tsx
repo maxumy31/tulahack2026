@@ -59,7 +59,14 @@ export default function DashboardPage() {
                 setIsLoading(false);
             }
         };
+
+        // Initial fetch
         fetchData();
+
+        // Set up long polling - update data every 5 seconds
+        const pollInterval = setInterval(fetchData, 5000);
+
+        return () => clearInterval(pollInterval);
     }, [authLoading, isAuthenticated]);
 
     if (authLoading) {
