@@ -156,7 +156,7 @@ export default function ClientPage({ }) {
                                     case "client":
                                         return <UserMessage content={msg.content} key={msg.id} />
                                     default:
-                                        return <OperatorMessage content={msg.content} key={msg.id} />
+                                        return <OperatorMessage content={msg.content} imageIds={msg.imageIds} key={msg.id} />
                                 }
                             })
                         }

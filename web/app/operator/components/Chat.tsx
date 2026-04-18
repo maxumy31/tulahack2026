@@ -169,7 +169,7 @@ export default function Chat({
                     {chatState.chat.map((msg) => (
                         msg.from === "client"
                             ? <UserMessage content={msg.content} key={msg.id} />
-                            : <OperatorMessage content={msg.content} key={msg.id} />
+                            : <OperatorMessage content={msg.content} imageIds={msg.imageIds} key={msg.id} />
                     ))}
 
                     {chatState.chat.length > 0 && chatState.chat[chatState.chat.length - 1].from === 'client' && (

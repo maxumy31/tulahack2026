@@ -11,12 +11,13 @@ export async function GetRagResponse(request: string) {
         },
     );
     const json = await response.json();
+    console.log(json);
     const asnwer = json.answer;
-    const images = json.images || [0];
+    const images = json.imageIds || [0];
     return [asnwer, images];
 }
 
-export async function GetImage(id: number): Promise<any> {
+export async function GetImage(id: string): Promise<any> {
     const img = await fetch(`${process.env.IMG_URI}/img/${id}` || "");
     return img;
 }

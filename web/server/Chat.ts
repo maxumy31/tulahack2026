@@ -39,7 +39,8 @@ export async function SendUserMessage(content: string, session: string) {
     const isBot = await IsBotSession(session);
     if (isBot && !needOperator) {
         const [response, images] = await GetRagResponse(content);
-        SendBotMessage(response, session);
+        console.log(images);
+        SendBotMessage(response, session, images);
     }
 
     return newMsg;
@@ -91,16 +92,17 @@ async function IsBotSession(session: string) {
     return sessionData?.status === 'bot';
 }
 
-async function SendBotMessage(content: string, session: string) {
+async function SendBotMessage(content: string, session: string, imageIds?: string[]) {
     const [newMsg] = await db
         .insert(messagesTable)
         .values({
             sessionId: session,
             content: content,
             from: "bot",
+            imageIds: imageIds ? JSON.stringify(imageIds) : null,
         })
         .returning();
-
+    console.log(imageIds);
     console.log(`[SERVER] Bot message added to session: ${session}`);
     return newMsg;
 }
@@ -176,6 +178,7 @@ export async function GetAllMessages(session: string): Promise<ChatMessage[]> {
             content: msg.content,
             from: msg.from as MessageOwner,
             time: msg.createdAt,
+            imageIds: msg.imageIds ? JSON.parse(msg.imageIds) : undefined,
         };
     });
 }
