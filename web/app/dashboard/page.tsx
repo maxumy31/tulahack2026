@@ -1,11 +1,12 @@
 'use client'
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { redirect, useRouter } from 'next/navigation';
 import StatsCard from './components/StatsCard';
 import RAGToggle from './components/RAGToggle';
 import GenerateReportButton from './components/GenerateReportButton';
 import ChartCard from './components/ChartCard';
+import OperatorHeader from '../components/OperatorHeader';
 
 interface TicketStats {
     openedHuman: number;
@@ -28,22 +29,20 @@ export default function DashboardPage() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                // Fetch stats
                 const statsResponse = await fetch('/api/stats');
                 if (!statsResponse.ok) throw new Error('Failed to fetch stats');
                 const statsData = await statsResponse.json();
                 setStats(statsData);
 
-                // Fetch chart data for all categories
                 const categories = ['total', 'opened', 'closed', 'opened-human', 'opened-bot', 'closed-human', 'closed-bot'];
                 const data: Record<string, ChartDataPoint[]> = {};
-                
+
                 for (const category of categories) {
                     const response = await fetch(`/api/chart?category=${category}`);
                     if (!response.ok) throw new Error(`Failed to fetch chart data for ${category}`);
                     data[category] = await response.json();
                 }
-                
+
                 setChartData(data);
             } catch (error) {
                 console.error('Failed to fetch data:', error);
@@ -63,24 +62,19 @@ export default function DashboardPage() {
     const openedTickets = stats ? stats.openedHuman + stats.openedBot : 0;
     const closedTickets = stats ? stats.closedHuman + stats.closedBot : 0;
 
+
     return (
-        <div className="min-h-screen bg-base-300">
-            <div className="flex flex-row justify-center gap-16 py-1 bg-base-100 border-b">
-                <div className="px-8 py-3 text-black underline">
-                    Чат
-                </div>
-                <div
-                    className="px-8 py-3 text-black hover:underline transition duration-500"
-                >
-                    Статистика
-                </div>
-            </div>
+        <div className="min-h-screen bg-base-100">
+            <OperatorHeader
+                headers={["Чат", "Статистика"]}
+                activeHeader="Статистика"
+                onTabClick={(tab) => { redirect("/operator"); }}
+            />
             <div className="max-w-7xl mx-auto">
                 <div className="mb-10 pt-4">
                     <div className="flex items-center gap-3 mb-4">
                         <h1 className="text-3xl font-bold text-gray-900">Панель управления</h1>
                     </div>
-                    <p className="text-gray-600 ml-11">Статистика по заявкам и управление режимом обработки</p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
@@ -143,14 +137,12 @@ export default function DashboardPage() {
                         </div>
                     </div>
 
-                    {/* Sidebar */}
                     <div className="lg:col-span-1 space-y-6">
                         <RAGToggle />
                         <GenerateReportButton />
                     </div>
                 </div>
 
-                {/* Chart Section */}
                 <div className="mt-8 space-y-8 mb-4">
                     <ChartCard
                         title="Всего заявок"

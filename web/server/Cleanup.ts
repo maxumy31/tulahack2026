@@ -9,7 +9,6 @@ export async function LazyCleanup() {
     const ONE_HOUR = 60 * 60 * 1000;
     const ONE_HOUR_AGO = new Date(Date.now() - 60 * 60 * 1000);
 
-    // Очищаем только если прошел час с последнего запуска
     if (now - lastRun < ONE_HOUR) return;
 
     lastRun = now;
@@ -22,9 +21,6 @@ export async function LazyCleanup() {
         )
     );
 
-    // 2. Закрываем сессии, где последнее сообщение было более часа назад
-    // Логика: находим сессии, где updatedAt меньше часа назад
-    // и которые еще не закрыты (isClosed: false)
     await db.update(chatSessions)
         .set({ isClosed: true })
         .where(

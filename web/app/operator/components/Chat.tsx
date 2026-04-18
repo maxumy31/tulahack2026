@@ -83,7 +83,7 @@ export default function Chat({ session: initialSession, canInteract = true, role
             const newSession = await StartNewChatSession();
             return;
         }
-        
+
         const messages = await GetAllMessages(initialSession);
         setChatState({ session: initialSession, chat: messages });
     };
@@ -116,15 +116,15 @@ export default function Chat({ session: initialSession, canInteract = true, role
 
     return (
         <div className={clsx(
-            "flex flex-col w-full",
+            "flex flex-col w-full bg-base-100",
             role === 'client' ? "justify-center items-center min-h-screen" : "h-full"
         )}>
             <div className={clsx(
-                "flex flex-col bg-base-200 overflow-hidden",
+                "flex flex-col bg-base-100 overflow-hidden",
                 role === 'client' ? "border border-primary w-full max-w-[600px] h-[800px] rounded-[20px]" : "flex-1"
             )}>
 
-                <div className="p-4 bg-primary text-primary-content flex items-center gap-4">
+                <div className="p-4 bg-primary bg-base-200 text-primary-content flex items-center gap-4">
                     {role === 'client' ? (
                         <div onClick={() => router.push("/")} className="cursor-pointer">
                             <svg className="hover:scale-120 transition duration-200" xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor">

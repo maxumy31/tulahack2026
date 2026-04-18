@@ -132,7 +132,6 @@ export default function ClientPage({ }) {
                         }
                     </div>
 
-                    {/* Input Area */}
                     <div className="p-4 border-t border-base-300 bg-base-100">
                         <form className="flex gap-2" onSubmit={(e) => e.preventDefault()}>
                             <input

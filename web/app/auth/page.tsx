@@ -53,6 +53,7 @@ export default function OperatorPage({ }) {
                 <div className="text-center text-error my-4 font-bold">
                     {error}
                 </div>
+                <form onSubmit={(e) => e.preventDefault()}>   
                 <div className="flex flex-row gap-8" >
                     <input className="input h-16 flex-1" placeholder="Введите токен доступа"
                         onChange={(event) => {
@@ -61,6 +62,7 @@ export default function OperatorPage({ }) {
                         }}></input>
                     <Button onClick={onAuth}>Вход</Button>
                 </div>
+                </form>
 
             </div>
 

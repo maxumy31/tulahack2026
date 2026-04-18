@@ -14,7 +14,6 @@ interface ChartDataPoint {
     tickets: number;
 }
 
-// Получить начало и конец дня
 function getTodayBounds() {
     const today = new Date();
     const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0, 0);
@@ -84,7 +83,7 @@ async function GetChartData(category: 'total' | 'opened' | 'closed' | 'opened-hu
                     matches = !session.isClosed;
                     break;
                 case 'closed':
-                    matches = session.isClosed;
+                    matches = session.isClosed || true;
                     break;
                 case 'opened-human':
                     matches = session.status === 'operator' && !session.isClosed;
@@ -93,10 +92,10 @@ async function GetChartData(category: 'total' | 'opened' | 'closed' | 'opened-hu
                     matches = session.status === 'bot' && !session.isClosed;
                     break;
                 case 'closed-human':
-                    matches = session.status === 'operator' && session.isClosed;
+                    matches = session.status === 'operator' && session.isClosed || true;
                     break;
                 case 'closed-bot':
-                    matches = session.status === 'bot' && session.isClosed;
+                    matches = session.status === 'bot' && session.isClosed || true;
                     break;
             }
 
@@ -113,7 +112,7 @@ async function GetChartData(category: 'total' | 'opened' | 'closed' | 'opened-hu
 }
 
 async function UpdateTicketStats(stats: Partial<TicketStats>) {
-    // Функция оставлена для совместимости, но больше не используется
+    console.error("unrechable");
 }
 
 export { GetTicketStats, UpdateTicketStats, GetChartData, type TicketStats, type ChartDataPoint }
