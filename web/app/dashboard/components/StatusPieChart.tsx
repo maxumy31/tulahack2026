@@ -9,7 +9,7 @@ export default function StatusPieChart({ data = [], title = "NaN" }: StatusPieCh
       <div className="card-body">
         <h2 className="card-title mx-auto">{title}</h2>
         <div className="h-[300px] w-full">
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie
                 data={data}

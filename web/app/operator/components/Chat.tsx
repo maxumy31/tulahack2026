@@ -14,9 +14,16 @@ interface ChatProps {
     canInteract?: boolean;
     role: 'client' | 'operator';
     isClosed?: boolean;
+    onChatClose : () => void;
 }
 
-export default function Chat({ session: initialSession, canInteract = true, role, isClosed = false }: ChatProps) {
+export default function Chat({ 
+    session: initialSession, 
+    canInteract = true, 
+    role, 
+    isClosed = false,
+    onChatClose,
+}: ChatProps) {
     const router = useRouter();
     const messageInputRef = useRef<HTMLInputElement>(null);
 
@@ -118,11 +125,11 @@ export default function Chat({ session: initialSession, canInteract = true, role
     const handleCloseTask = async () => {
         if (chatState.session) {
             await CloseTask(chatState.session);
-            // Очищаем чат после закрытия
             setChatState({
                 chat: [],
                 session: ""
             });
+            onChatClose();
         }
     };
 
@@ -136,7 +143,7 @@ export default function Chat({ session: initialSession, canInteract = true, role
                 role === 'client' ? "border border-primary w-full max-w-[600px] h-[800px] rounded-[20px]" : "flex-1"
             )}>
 
-                <div className="p-4 bg-primary bg-base-200 text-primary-content flex items-center justify-between">
+                <div className="p-6 bg-primary bg-base-200 text-primary-content flex items-center justify-between">
                     <div>
                         {role === 'client' ? (
                             <button onClick={() => router.push("/")} className="cursor-pointer hover:opacity-80 transition-opacity">
@@ -145,15 +152,15 @@ export default function Chat({ session: initialSession, canInteract = true, role
                                 </svg>
                             </button>
                         ) : (
-                            <div className="font-bold">Чат с клиентом</div>
+                            <div className="font-medium text-[16px] leading-[20px]">Чат с клиентом</div>
                         )}
                     </div>
                     {role === 'operator' && chatState.session && !isClosed && (
                         <button 
                             onClick={handleCloseTask}
-                            className="hover:cursor-pointer hover:opacity-80 transition-opacity"
+                            className="hover:cursor-pointer hover:opacity-80 transition-opacity font-medium text-[16px] leading-[20px]"
                         >
-                            <span className="font-medium">Закрыть обращение</span>
+                            Закрыть обращение
                         </button>
                     )}
                 </div>

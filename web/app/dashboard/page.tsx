@@ -43,8 +43,6 @@ export default async function DashboardPage() {
         GetBotResolvedDistribution(),
     ]);
 
-    console.log(complexityDistribution);
-
     return (
         <div className="min-h-screen bg-base-100">
             <OperatorHeader

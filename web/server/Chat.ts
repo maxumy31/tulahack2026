@@ -5,6 +5,7 @@ import { chatSessions, messagesTable } from "@/db/schema"; // Укажите п�
 import { eq, asc, count, and, desc } from "drizzle-orm";
 import { GetRagResponse } from "./Rag";
 import { LazyCleanup } from "./Cleanup";
+import { GetUseBot } from "./BotState";
 
 setTimeout(LazyCleanup, 1000);
 
@@ -45,6 +46,14 @@ export async function SendUserMessage(content: string, session: string) {
 }
 
 async function CheckNeedConnectToOperator(session: string) {
+    const ragUsed = await GetUseBot();
+
+    if(!ragUsed) {
+        return true;
+    }
+
+    console.log(`[SERVER] Rag used ${ragUsed}`);
+
     const maxMessageCountBeforeOperator = 3;
 
     const sessionData = await db.query.chatSessions.findFirst({

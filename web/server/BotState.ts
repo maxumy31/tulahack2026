@@ -1,10 +1,10 @@
-// In-memory state for bot toggle (no database imports)
-let useBot = false;
+'use server'
+let useBot = true;
 
-export function GetUseBot() {
+export async function GetUseBot() {
     return useBot;
 }
 
-export function SetUseBot(value: boolean) {
+export async function SetUseBot(value: boolean) {
     useBot = value;
 }

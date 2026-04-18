@@ -53,13 +53,14 @@ export default function ChatSidebar({
     }, [activeTab])
 
     return (<>
-        <aside className="w-1/3 flex flex-col bg-base-100">
+        <aside className="flex flex-col bg-base-100">
 
-            <div className="p-2 bg-primary flex justify-around text-md font-bold text-primary-content uppercase tracking-wider">
+            <div className="p-4 bg-primary flex justify-around text-md font-bold text-primary-content uppercase tracking-wider">
                 <button
                     onClick={() => setActiveTab("active")}
                     className={clsx(
-                        "p-2 rounded transition",
+                        "font-medium text-[16px] leading-[20px] hover:cursor-pointer",
+                        "p-2 rounded transition border-r",
                         activeTab === 'active' ? "text-primary-content" : "opacity-70"
                     )}
                 >
@@ -68,7 +69,8 @@ export default function ChatSidebar({
                 <button
                     onClick={() => setActiveTab("closed")}
                     className={clsx(
-                        "p-2 rounded transition",
+                        "font-medium text-[16px] leading-[20px] hover:cursor-pointer",
+                        "p-2 rounded transition border-r",
                         activeTab === 'closed' ? "hover:bg-primary-focus" : "opacity-70"
                     )}
                 >
@@ -77,6 +79,7 @@ export default function ChatSidebar({
                 <button
                     onClick={() => setActiveTab("bot")}
                     className={clsx(
+                        "font-medium text-[16px] leading-[20px] hover:cursor-pointer",
                         "p-2 rounded transition",
                         activeTab === 'bot' ? "hover:bg-primary-focus" : "opacity-70"
                     )}
