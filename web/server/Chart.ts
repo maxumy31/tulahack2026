@@ -152,3 +152,28 @@ export async function getComplexityDistribution() {
     return [];
   }
 }
+
+export async function getBotResolvedDistribution() {
+  try {
+    const distribution = await db
+      .select({
+        complexity: chatSessions.complexity,
+        count: count(chatSessions.id),
+      })
+      .from(chatSessions)
+      .where(
+        and(
+          eq(chatSessions.status, "bot"),
+          eq(chatSessions.isClosed, true),
+          sql`${chatSessions.complexity} BETWEEN 1 AND 10`
+        )
+      )
+      .groupBy(chatSessions.complexity)
+      .orderBy(chatSessions.complexity);
+
+    return distribution;
+  } catch (error) {
+    console.error("Ошибка при получении статистики бота:", error);
+    return [];
+  }
+}

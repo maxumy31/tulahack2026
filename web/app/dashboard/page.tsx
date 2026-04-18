@@ -1,14 +1,15 @@
 import OperatorHeader from '../components/OperatorHeader';
-import { 
-    CountAllClosedSessions, 
-    CountAllOpenSessions, 
-    CountAllSessions, 
-    GetAverageChatLength, 
-    GetClosingStats, 
-    getComplexityDistribution as GetComplexityDistribution, 
-    GetDailyClosedSessionsCount, 
-    GetDailyCreatedSessionsCount, 
-    GetMessageCountDistribution 
+import {
+    CountAllClosedSessions,
+    CountAllOpenSessions,
+    CountAllSessions,
+    GetAverageChatLength,
+    getBotResolvedDistribution as GetBotResolvedDistribution,
+    GetClosingStats,
+    getComplexityDistribution as GetComplexityDistribution,
+    GetDailyClosedSessionsCount,
+    GetDailyCreatedSessionsCount,
+    GetMessageCountDistribution
 } from '@/server/Chart';
 import StatusPieChart from './components/StatusPieChart';
 import StatsCard from './components/StatsCard';
@@ -28,6 +29,7 @@ export default async function DashboardPage() {
         closedTicketsPerDay,
         avgChatLength,
         complexityDistribution,
+        botComplexityDistribution,
     ] = await Promise.all([
         CountAllSessions(),
         CountAllOpenSessions(),
@@ -37,8 +39,11 @@ export default async function DashboardPage() {
         GetDailyCreatedSessionsCount(),
         GetDailyClosedSessionsCount(),
         GetAverageChatLength(),
-        GetComplexityDistribution()
+        GetComplexityDistribution(),
+        GetBotResolvedDistribution(),
     ]);
+
+    console.log(complexityDistribution);
 
     return (
         <div className="min-h-screen bg-base-100">
@@ -91,7 +96,7 @@ export default async function DashboardPage() {
 
                     </div>
 
-                    <div className="lg:col-span-1 space-y-6">
+                    <div className="lg:col-span-1 space-y-6 flex flex-col justify-between">
                         <RAGToggle />
                         <GenerateReportButton />
                     </div>
@@ -131,14 +136,17 @@ export default async function DashboardPage() {
                             } />
                     </div>
                     <div>
-                        <ChartCard title="Распределение задач по сложности" id="123" 
-                            data={complexityDistribution.map(tkt => {
-                                return {
-                                    hour : tkt.complexity || 0,
-                                    tickets : tkt.count,
-                                }  
-                            })
-                            }/>
+                        <ChartCard title="Распределение задач по сложности" id="123"
+                            labels={complexityDistribution.map(tkt => tkt.complexity || 0)}
+                            values={complexityDistribution.map(tkt => tkt.count || 0)}
+                        />
+                    </div>
+
+                    <div>
+                        <ChartCard title="Распределение задач, решенных ботом, по сложности" id="123"
+                            labels={botComplexityDistribution.map(tkt => tkt.complexity || 0)}
+                            values={botComplexityDistribution.map(tkt => tkt.count || 0)}
+                        />
                     </div>
 
                 </div>

@@ -5,7 +5,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recha
 
 export default function StatusPieChart({ data = [], title = "NaN" }: StatusPieChartProps) {
   return (
-    <div className="card bg-base-100 border border-base-200">
+    <div className="card bg-base-100 border border-gray-200">
       <div className="card-body">
         <h2 className="card-title mx-auto">{title}</h2>
         <div className="h-[300px] w-full">
