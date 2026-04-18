@@ -194,3 +194,7 @@ config/private/
 secrets/
 keys/
 certificates/
+
+e5_custom/
+e5_custom (2).zip
+pdfs/

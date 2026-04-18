@@ -7,10 +7,20 @@ services:
       POSTGRES_PASSWORD: mypassword
       POSTGRES_DB: mydatabase
     ports:
-      - "5432:5432"
+      - "5434:5432"
     volumes:
       - db_data:/var/lib/postgresql
-
+  rag_db:
+    image: pgvector/pgvector:pg17
+    restart: always
+    environment:
+      POSTGRES_USER: raguser
+      POSTGRES_PASSWORD: ragpassword
+      POSTGRES_DB: ragdatabase
+    ports:
+      - "5433:5432"
+    volumes:
+      - rag_db_data:/var/lib/postgresql/data
   web:
     build:
       context: ./web
@@ -40,6 +50,10 @@ services:
       - /app/.venv
     environment:
       PYTHONUNBUFFERED: 1
-
+      DATABASE_URL: postgresql://raguser:ragpassword@rag_db:5432/ragdatabase
+      DB_VECTOR_EXTENSION: pgvector
+    depends_on:
+      - rag_db
 volumes:
   db_data:
+  rag_db_data:
