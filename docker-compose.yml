@@ -25,8 +25,11 @@ services:
       DATABASE_URL: postgresql://myuser:mypassword@db:5432/mydatabase
       NODE_ENV: development
       WATCHPACK_POLLING: true
+      RAG_URI: http://backend:8000/chat_request
+      IMG_URI: http://backend:8000/img
     depends_on:
       - db
+      - backend
 
   backend:
     build:
