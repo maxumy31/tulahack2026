@@ -5,4 +5,4 @@ interface ChatMessage {
     time: Date,
 }
 
-type MessageOwner = "client" | "operator" | "bot"
+type MessageOwner = "client" | "operator" | "bot" | "system"

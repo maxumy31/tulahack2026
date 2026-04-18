@@ -174,3 +174,21 @@ export async function GetAllMessages(session: string): Promise<ChatMessage[]> {
         };
     });
 }
+
+export async function RequestOperator(session: string, complexity: number) {
+    await db.update(chatSessions)
+        .set({ status: "operator" })
+        .where(eq(chatSessions.id, session));
+
+    const [newMsg] = await db
+        .insert(messagesTable)
+        .values({
+            sessionId: session,
+            content: `[SYSTEM] Клиент запросил оператора. Сложность задачи: ${complexity}/10`,
+            from: "system",
+        })
+        .returning();
+
+    console.log(`[SERVER] Operator requested for session: ${session}, complexity: ${complexity}`);
+    return newMsg;
+}

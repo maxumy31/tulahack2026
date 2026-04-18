@@ -17,6 +17,7 @@ export const chatSessions = pgTable("chat_sessions", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().$onUpdate(() => new Date()),
   isClosed: boolean().default(false),
+  complexity: serial("complexity"),
 });
 
 export const messagesTable = pgTable("messages", {
