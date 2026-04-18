@@ -1,3 +1,6 @@
 node_modules
 .idea
 /pdf_cleaner/
+anaconda_projects/
+backend/e5_custom/
+backend/e5_custom*.zip
