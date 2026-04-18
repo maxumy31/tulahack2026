@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import OperatorMessage from "./components/OperatorMessage";
 import SendMessageButton from "./components/SendMessageButton";
 import UserMessage from "./components/UserMessage";
-import { CloseTask, GetAllMessages, RequestOperator, SendUserMessage, StartNewChatSession } from "@/server/Chat";
+import { CloseTask, GetAllMessages, SendUserMessage, StartNewChatSession, RequestOperator } from "@/server/Chat";
 import { useRouter } from "next/navigation";
 import WaitingMessage from "./../components/WaitingMessage";
 import ComplexityModal from "./components/ComplexityModal";
@@ -19,39 +19,55 @@ export default function ClientPage({ }) {
     }
 
     async function OnTaskSolve() {
-        CloseTask(chatState.session);
+        await CloseTask(chatState.session);
         navigateBack();
     }
 
     const pollingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const lastChatHashRef = useRef<string>("");
+    
+    const getMessageHash = (messages: ChatMessage[]): string => {
+        return messages.map(m => `${m.id}-${m.content}`).join("|");
+    };
+
     const LongPollMessages = async () => {
         try {
+            if (!chatState.session) return; // Не опрашиваем если нет сессии
+            
             const chat = await GetAllMessages(chatState.session);
-            setChatState(prev => ({
-                ...prev,
-                chat: chat
-            }));
+            const newHash = getMessageHash(chat);
+            
+            // Only update if messages actually changed
+            if (newHash !== lastChatHashRef.current) {
+                lastChatHashRef.current = newHash;
+                setChatState(prev => ({
+                    ...prev,
+                    chat: chat
+                }));
+            }
         } catch (error) {
             console.error("Ошибка при получении сообщений:", error);
         } finally {
             if (chatState.session) {
-                pollingTimeoutRef.current = setTimeout(LongPollMessages, 3000);
+                pollingTimeoutRef.current = setTimeout(LongPollMessages, 1000);
             }
         }
     };
 
     const CreateAndLoadChat = async () => {
-        const session = await StartNewChatSession();
-        const chat = await GetAllMessages(session);
+        // Не создаем сессию при загрузке, создадим при первом сообщении
         setChatState({
-            session: session,
-            chat: chat,
+            session: "",
+            chat: [],
             operatorRequested: false
         });
     }
 
     const FastPollMessages = async () => {
         const chat = await GetAllMessages(chatState.session);
+        const newHash = getMessageHash(chat);
+        lastChatHashRef.current = newHash;
+        
         setChatState({
             session: chatState.session,
             chat: chat,
@@ -67,12 +83,27 @@ export default function ClientPage({ }) {
             messageInputRef.current.value = "";
         }
 
-        await SendUserMessage(messageValue, chatState.session);
+        // Если нет сессии, создаем её перед отправкой первого сообщения
+        let sessionId = chatState.session;
+        if (!sessionId) {
+            sessionId = await StartNewChatSession();
+            setChatState(prev => ({ ...prev, session: sessionId }));
+        }
+
+        await SendUserMessage(messageValue, sessionId);
         await FastPollMessages();
     }
 
-    const handleRequestOperator = (complexity: number) => {
-        RequestOperator(chatState.session, complexity);
+    const handleRequestOperator = async (complexity: number) => {
+        // Если нет сессии, создаем её перед запросом оператора
+        let sessionId = chatState.session;
+        if (!sessionId) {
+            sessionId = await StartNewChatSession();
+            setChatState(prev => ({ ...prev, session: sessionId }));
+        }
+
+        await RequestOperator(sessionId, complexity);
+        
         setChatState(prev => ({
             ...prev,
             operatorRequested: true
@@ -102,7 +133,7 @@ export default function ClientPage({ }) {
 
     useEffect(() => {
         if (chatState.session) {
-            pollingTimeoutRef.current = setTimeout(LongPollMessages, 3000);
+            pollingTimeoutRef.current = setTimeout(LongPollMessages, 1000);
         }
     }, [chatState.session]);
 

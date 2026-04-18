@@ -12,6 +12,9 @@ export default function ChatSidebar({
     onTabSelect,
 }: ChatSidebarProps) {
 
+    type Tab = "active" | "closed" | "bot"
+    const [activeTab, setActiveTab] = useState<Tab>("active");
+
     async function GetWaitingSessions() {
         const session = await GetAllWaitingSessions();
         setSessions(session);
@@ -28,10 +31,6 @@ export default function ChatSidebar({
     }
 
     const [sessions, setSessions] = useState<string[]>([]);
-
-
-    type Tab = "active" | "closed" | "bot"
-    const [activeTab, setActiveTab] = useState<Tab>("active");
 
     useEffect(() => {
         (function() {
@@ -88,7 +87,7 @@ export default function ChatSidebar({
             {
                 activeTab === "active"
                     ? <ActiveTab
-                        onChatSelect={(session) => onChatSelect(session)}
+                        onChatSelect={(session) => onChatSelect(session, false)}
                         sessions={sessions || [""]}
                     />
                     : <></>
@@ -96,7 +95,7 @@ export default function ChatSidebar({
             {
                 activeTab === "closed"
                     ? <ClosedTab
-                        onChatSelect={(session) => onChatSelect(session)}
+                        onChatSelect={(session) => onChatSelect(session, true)}
                         sessions={sessions || [""]}
                     />
                     : <></>
@@ -104,7 +103,7 @@ export default function ChatSidebar({
             {
                 activeTab === "bot"
                     ? <BotTab
-                        onChatSelect={(session) => onChatSelect(session)}
+                        onChatSelect={(session) => onChatSelect(session, false)}
                         sessions={sessions || [""]}
                     />
                     : <></>
@@ -114,6 +113,6 @@ export default function ChatSidebar({
 }
 
 interface ChatSidebarProps {
-    onChatSelect: (session: string) => void,
+    onChatSelect: (session: string, isClosed: boolean) => void,
     onTabSelect: (tab: string) => void,
 }

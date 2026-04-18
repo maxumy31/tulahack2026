@@ -7,15 +7,16 @@ import UserMessage from "./UserMessage";
 import OperatorMessage from "./OperatorMessage";
 import WaitingMessage from "../../components/WaitingMessage";
 import SendMessageButton from "./SendMessageButton";
-import { GetAllMessages, SendUserMessage, SendOperatorMessage, StartNewChatSession } from "@/server/Chat";
+import { GetAllMessages, SendUserMessage, SendOperatorMessage, StartNewChatSession, CloseTask } from "@/server/Chat";
 
 interface ChatProps {
     session?: string;
     canInteract?: boolean;
     role: 'client' | 'operator';
+    isClosed?: boolean;
 }
 
-export default function Chat({ session: initialSession, canInteract = true, role }: ChatProps) {
+export default function Chat({ session: initialSession, canInteract = true, role, isClosed = false }: ChatProps) {
     const router = useRouter();
     const messageInputRef = useRef<HTMLInputElement>(null);
 
@@ -114,6 +115,17 @@ export default function Chat({ session: initialSession, canInteract = true, role
         await pollMessages();
     };
 
+    const handleCloseTask = async () => {
+        if (chatState.session) {
+            await CloseTask(chatState.session);
+            // Очищаем чат после закрытия
+            setChatState({
+                chat: [],
+                session: ""
+            });
+        }
+    };
+
     return (
         <div className={clsx(
             "flex flex-col w-full bg-base-100",
@@ -124,15 +136,25 @@ export default function Chat({ session: initialSession, canInteract = true, role
                 role === 'client' ? "border border-primary w-full max-w-[600px] h-[800px] rounded-[20px]" : "flex-1"
             )}>
 
-                <div className="p-4 bg-primary bg-base-200 text-primary-content flex items-center gap-4">
-                    {role === 'client' ? (
-                        <div onClick={() => router.push("/")} className="cursor-pointer">
-                            <svg className="hover:scale-120 transition duration-200" xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor">
-                                <path d="M640-200 200-480l440-280v560Zm-80-280Zm0 134v-268L350-480l210 134Z" />
-                            </svg>
-                        </div>
-                    ) : (
-                        <div className="font-bold">Чат с клиентом</div>
+                <div className="p-4 bg-primary bg-base-200 text-primary-content flex items-center justify-between">
+                    <div>
+                        {role === 'client' ? (
+                            <button onClick={() => router.push("/")} className="cursor-pointer hover:opacity-80 transition-opacity">
+                                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor">
+                                    <path d="M640-200 200-480l440-280v560Zm-80-280Zm0 134v-268L350-480l210 134Z" />
+                                </svg>
+                            </button>
+                        ) : (
+                            <div className="font-bold">Чат с клиентом</div>
+                        )}
+                    </div>
+                    {role === 'operator' && chatState.session && !isClosed && (
+                        <button 
+                            onClick={handleCloseTask}
+                            className="hover:cursor-pointer hover:opacity-80 transition-opacity"
+                        >
+                            <span className="font-medium">Закрыть обращение</span>
+                        </button>
                     )}
                 </div>
 

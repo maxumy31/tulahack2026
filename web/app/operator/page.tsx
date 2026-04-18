@@ -26,6 +26,7 @@ export default function ClientPage({ }) {
     }
 
     const [activeChatSession, setActiveChatSession] = useState<string>("");
+    const [isClosed, setIsClosed] = useState<boolean>(false);
 
     return (
         <>
@@ -39,12 +40,13 @@ export default function ClientPage({ }) {
                     <div className="flex w-full max-w-[1600px] h-[800px] rounded-[20px] overflow-hidden border border-primary mt-8">
 
                         <ChatSidebar
-                            onTabSelect={(tab) => { setActiveChatSession("") }}
-                            onChatSelect={(session) => setActiveChatSession(session)} />
+                            onTabSelect={(tab) => { setActiveChatSession(""); setIsClosed(false); }}
+                            onChatSelect={(session, closed) => { setActiveChatSession(session); setIsClosed(closed || false); }} />
                         <Chat
                             session={activeChatSession}
                             role="operator"
-                            canInteract />
+                            canInteract
+                            isClosed={isClosed} />
 
                     </div>
                 </div>
