@@ -1,4 +1,4 @@
-import { pgTable, serial, text, timestamp, uuid, pgEnum } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, timestamp, uuid, pgEnum, boolean } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
 // Определяем возможные состояния обработки
@@ -9,6 +9,7 @@ export const chatSessions = pgTable("chat_sessions", {
   status: chatStatusEnum("status").default("bot").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().$onUpdate(() => new Date()),
+  isClosed: boolean().default(false),
 });
 
 export const messagesTable = pgTable("messages", {
