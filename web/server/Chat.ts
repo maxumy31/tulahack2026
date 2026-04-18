@@ -48,7 +48,7 @@ export async function SendUserMessage(content: string, session: string) {
 async function CheckNeedConnectToOperator(session: string) {
     const ragUsed = await GetUseBot();
 
-    if(!ragUsed) {
+    if (!ragUsed) {
         return true;
     }
 
@@ -85,11 +85,10 @@ async function ConnectOperator(session: string) {
 }
 
 async function IsBotSession(session: string) {
-    const [isBot] = await db.select()
-        .from(chatSessions)
-        .where(chat => eq(chat.status, "bot"))
-        .limit(1);
-    return isBot.status === 'bot';
+    const sessionData = await db.query.chatSessions.findFirst({
+        where: eq(chatSessions.id, session),
+    });
+    return sessionData?.status === 'bot';
 }
 
 async function SendBotMessage(content: string, session: string) {
@@ -125,7 +124,7 @@ export async function GetAllWaitingSessions() {
         .from(chatSessions)
         .where(
             and(eq(chatSessions.isClosed, false)
-            ,eq(chatSessions.status, "operator"))
+                , eq(chatSessions.status, "operator"))
         )
         .orderBy(desc(chatSessions.updatedAt));
     console.log(`[SERVER] Fetched all waiting sessions. Total: ${allSessions.length}`);
@@ -137,7 +136,7 @@ export async function GetAllBotSessions() {
         .from(chatSessions)
         .where(
             and(eq(chatSessions.isClosed, false)
-            ,eq(chatSessions.status, "bot"))
+                , eq(chatSessions.status, "bot"))
         )
         .orderBy(desc(chatSessions.updatedAt));
     console.log(`[SERVER] Fetched all bot sessions. Total: ${allSessions.length}`);
@@ -162,8 +161,8 @@ export async function CloseTask(session: string) {
 }
 
 export async function GetAllMessages(session: string): Promise<ChatMessage[]> {
-    if(session === "") return [];
-    
+    if (session === "") return [];
+
     const chatHistory = await db.query.messagesTable.findMany({
         where: eq(messagesTable.sessionId, session),
         orderBy: asc(messagesTable.createdAt),
@@ -185,6 +184,8 @@ export async function RequestOperator(session: string, complexity: number) {
     await db.update(chatSessions)
         .set({ status: "operator" })
         .where(eq(chatSessions.id, session));
+
+    console.log("[SERVER] Update result:", session, " ", complexity);
 
     const [newMsg] = await db
         .insert(messagesTable)

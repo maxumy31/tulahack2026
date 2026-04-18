@@ -71,24 +71,36 @@ export default function AuthPage() {
     }
 
     return (
-        <div className="mx-auto my-auto w-[400px]">
-            <div className="text-center text-error my-4 font-bold">
-                {error}
+        <div className="mx-auto my-auto">
+            <div className="mx-auto my-auto w-[800px]">
+                <div className="text-center text-error my-4 font-bold">
+                    {error}
+                </div>
+                <form onSubmit={e => e.preventDefault()}>
+                    <div className="flex flex-row gap-4">
+                        <Button type="button" onClick={() => router.replace('/')}>
+                            <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor">
+                                <path d="M640-200 200-480l440-280v560Zm-80-280Zm0 134v-268L350-480l210 134Z" />
+                            </svg> Назад
+                        </Button>
+                        <input
+                            className="input h-16 flex-1"
+                            placeholder="Введите токен доступа"
+                            value={token}
+                            onChange={(event) => {
+                                setToken(event.target.value);
+                                setError("");
+                            }}
+                            disabled={isAuthSubmitting}
+                        />
+                        <Button onClick={onAuth} disabled={isAuthSubmitting}>
+                            {isAuthSubmitting ? 'Вход...' : 'Вход'}
+                        </Button>
+                    </div>
+                </form>
             </div>
-            <div className="flex flex-row gap-4">
-                <input
-                    className="input h-16 flex-1"
-                    placeholder="Введите токен доступа"
-                    value={token}
-                    onChange={(event) => {
-                        setToken(event.target.value);
-                        setError("");
-                    }}
-                    disabled={isAuthSubmitting}
-                />
-                <Button onClick={onAuth} disabled={isAuthSubmitting}>
-                    {isAuthSubmitting ? 'Вход...' : 'Вход'}
-                </Button>
+
+            <div className="flex flex-row justify-center mt-16">
             </div>
         </div>
     );

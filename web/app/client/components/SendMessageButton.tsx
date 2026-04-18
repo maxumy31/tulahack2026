@@ -1,8 +1,10 @@
+import Button from "@/app/components/Button";
+
 export default function SendMessageButton({ ...props }: SendMessageButtonProps) {
   return (
-    <button 
+    <Button
       {...props} 
-      className={`btn btn-primary text-primary-content group ${props.className || ''}`}
+      className={`group ${props.className || ''}`}
     >
       <svg 
         className="transition-transform duration-200 group-hover:scale-125" 
@@ -14,7 +16,7 @@ export default function SendMessageButton({ ...props }: SendMessageButtonProps) 
       >
         <path d="M504-480 320-664l56-56 240 240-240 240-56-56 184-184Z" />
       </svg>
-    </button>
+    </Button>
   );
 }
 interface SendMessageButtonProps extends React.ComponentProps<'button'> {
