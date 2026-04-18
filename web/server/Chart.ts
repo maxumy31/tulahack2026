@@ -35,54 +35,44 @@ export async function CountAllClosedSessions() {
 }
 
 export async function GetClosingStats() {
-    const closedSessions = await db.select().from(chatSessions).where(eq(chatSessions.isClosed, true));
+    const stats = await db
+        .select({
+            status: chatSessions.status,
+            count: count(chatSessions.id),
+        })
+        .from(chatSessions)
+        .where(eq(chatSessions.isClosed, true))
+        .groupBy(chatSessions.status);
 
-    let botClosed = 0;
-    let humanClosed = 0;
+    // Преобразуем ответ в нужный вам формат
+    const botClosed = stats.find(s => s.status === 'bot')?.count || 0;
+    const humanClosed = stats.find(s => s.status === 'operator')?.count || 0;
 
-    for (const session of closedSessions) {
-        const messages = await db.select().
-            from(messagesTable).
-            where(
-                eq(messagesTable.sessionId, session.id)
-            );
-        const hasOperator = messages.some(m => m.from === 'operator');
-
-        if (hasOperator) humanClosed++;
-        else botClosed++;
-    }
-    console.log(`[SERVER] Getting close statistics. Total: ${closedSessions.length}`);
+    console.log(`[SERVER] Statistics calculated via status field. Bot: ${botClosed}, Operator: ${humanClosed}`);
+    
     return [
-        { label: "bot", value: botClosed },
-        { label: "operator", value: humanClosed }
+        { label: "bot", value: Number(botClosed) },
+        { label: "operator", value: Number(humanClosed) }
     ];
 }
 
 
 export async function GetMessageCountDistribution() {
-    const labelColumn = sql<string>`CASE 
-        WHEN sub.msg_count = 1 THEN '1'
-        WHEN sub.msg_count BETWEEN 2 AND 3 THEN '2-3'
-        WHEN sub.msg_count BETWEEN 4 AND 5 THEN '4-5'
-        WHEN sub.msg_count BETWEEN 6 AND 8 THEN '6-8'
-        ELSE '8+'
-    END`;
-
     const distribution = await db
         .select({
-            label: labelColumn.as('label'),
+            label: sql<string>`sub.msg_count::text`.as('label'),
             value: sql<number>`count(*)`.mapWith(Number).as('value'),
         })
         .from(
             db.select({
                 msg_count: sql<number>`count(*)`.mapWith(Number).as('msg_count')
             })
-                .from(messagesTable)
-                .groupBy(messagesTable.sessionId)
-                .as('sub')
+            .from(messagesTable)
+            .groupBy(messagesTable.sessionId)
+            .as('sub')
         )
-        .groupBy(labelColumn)
-        .orderBy(sql`MIN(sub.msg_count)`);
+        .groupBy(sql`sub.msg_count`)
+        .orderBy(sql`sub.msg_count ASC`);
 
     return distribution;
 }
@@ -134,7 +124,7 @@ export async function GetAverageChatLength() {
     return average.toFixed(1);
 }
 
-export async function getComplexityDistribution() {
+export async function GetComplexityDistribution() {
   try {
     const distribution = await db
       .select({
@@ -153,7 +143,7 @@ export async function getComplexityDistribution() {
   }
 }
 
-export async function getBotResolvedDistribution() {
+export async function GetBotResolvedDistribution() {
   try {
     const distribution = await db
       .select({
@@ -176,4 +166,29 @@ export async function getBotResolvedDistribution() {
     console.error("Ошибка при получении статистики бота:", error);
     return [];
   }
+}
+
+export async function GetBotFailureRate() {
+  const totalClosed = await db
+    .select({ count: count() })
+    .from(chatSessions)
+    .where(eq(chatSessions.isClosed, true));
+
+
+  const closedByOperator = await db
+    .select({ count: count() })
+    .from(chatSessions)
+    .where(
+      and(
+        eq(chatSessions.isClosed, true),
+        eq(chatSessions.status, "operator")
+      )
+    );
+
+  const total = totalClosed[0]?.count || 0;
+  const operatorCount = closedByOperator[0]?.count || 0;
+
+  if (total === 0) return 0;
+
+  return (Number(operatorCount) / total) * 100;
 }

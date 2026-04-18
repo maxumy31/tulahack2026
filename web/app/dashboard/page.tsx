@@ -4,9 +4,10 @@ import {
     CountAllOpenSessions,
     CountAllSessions,
     GetAverageChatLength,
-    getBotResolvedDistribution as GetBotResolvedDistribution,
+    GetBotFailureRate,
+    GetBotResolvedDistribution as GetBotResolvedDistribution,
     GetClosingStats,
-    getComplexityDistribution as GetComplexityDistribution,
+    GetComplexityDistribution as GetComplexityDistribution,
     GetDailyClosedSessionsCount,
     GetDailyCreatedSessionsCount,
     GetMessageCountDistribution
@@ -30,6 +31,7 @@ export default async function DashboardPage() {
         avgChatLength,
         complexityDistribution,
         botComplexityDistribution,
+        botFailedPercent,
     ] = await Promise.all([
         CountAllSessions(),
         CountAllOpenSessions(),
@@ -41,6 +43,7 @@ export default async function DashboardPage() {
         GetAverageChatLength(),
         GetComplexityDistribution(),
         GetBotResolvedDistribution(),
+        GetBotFailureRate(),
     ]);
 
     return (
@@ -105,7 +108,7 @@ export default async function DashboardPage() {
                 <div className="mt-8 mb-4 grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="w-full h-[350px]">
                         <StatusPieChart
-                            title="Соотношение заявок закрытых ботом и оператором"
+                            title="Соотношение заявок закрытых ИИ и оператором"
                             data={
                                 humanBotClosedTickets ?
                                     humanBotClosedTickets.map((tkt) => {
@@ -120,34 +123,56 @@ export default async function DashboardPage() {
                     </div>
                     <div>
                         <StatusPieChart
-                            title="Распределение решенных задач по количеству сообщений"
+                            title="Процент задач, с которыми ИИ не справился"
                             data={
-                                closedDistributionByMessages ?
-                                    closedDistributionByMessages.map((tkt, ind) => {
-                                        return {
-                                            name: tkt.label,
-                                            value: tkt.value,
-                                            color: ind % 2 == 0 ? "#0A69AF" : "#b8b8b8"
-                                        }
-                                    })
-                                    : []
+                                [
+                                    {
+                                        "name": "Решено ИИ",
+                                        "value": (100 - botFailedPercent),
+                                        "color": "#0A69AF"
+                                    },
+                                    {
+                                        "name": "ИИ не смог решить",
+                                        "value": botFailedPercent,
+                                        "color": "#b8b8b8"
+                                    }
+                                ]
                             } />
                     </div>
                     <div>
-                        <ChartCard title="Распределение задач по сложности" id="123"
-                            labels={complexityDistribution.map(tkt => tkt.complexity || 0)}
-                            values={complexityDistribution.map(tkt => tkt.count || 0)}
-                        />
+                        <StatusPieChart
+                            title="Распределение задач по сложности"
+                            data={
+                                complexityDistribution ?
+                                    complexityDistribution.map((tkt, ind) => {
+                                        return {
+                                            "name": String(tkt.complexity || "0"),
+                                            "value": tkt.count || 0,
+                                            color: ind % 2 == 0 ? "#0A69AF" : "#b8b8b8"
+                                        }
+                                    }) : []
+                            } />
                     </div>
 
+                </div>
+                <div className="mt-8 mb-4 grid grid-cols-1 md:grid-cols-2 gap-6">
+
+
                     <div>
-                        <ChartCard title="Распределение задач, решенных ботом, по сложности" id="123"
+                        <ChartCard title="Распределение задач, решенных ИИ, по сложности" id="123"
                             labels={botComplexityDistribution.map(tkt => tkt.complexity || 0)}
                             values={botComplexityDistribution.map(tkt => tkt.count || 0)}
                         />
                     </div>
-
+                    <div>
+                        <ChartCard title="Распределение задач по количеству сообщений" id="123"
+                            labels={closedDistributionByMessages.map(msg => msg.label)}
+                            values={closedDistributionByMessages.map(msg => msg.value)}
+                        />
+                    </div>
                 </div>
+
+
             </div>
         </div>
     );
