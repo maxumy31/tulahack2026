@@ -68,7 +68,7 @@ export default function ChartCard({ title, id, labels, values }: ChartCardProps)
             </div>
 
             {/* Итоги */}
-            <div className="mt-6 grid grid-cols-3 gap-4 text-sm">
+            <div className="mt-6 grid grid-cols-2 gap-4 text-sm">
                 <div>
                     <div className="text-gray-600 mb-1">Пик</div>
                     <div className="text-lg font-semibold text-gray-900">{maxVal}</div>
@@ -76,10 +76,6 @@ export default function ChartCard({ title, id, labels, values }: ChartCardProps)
                 <div>
                     <div className="text-gray-600 mb-1">Среднее</div>
                     <div className="text-lg font-semibold text-gray-900">{average}</div>
-                </div>
-                <div>
-                    <div className="text-gray-600 mb-1">Всего</div>
-                    <div className="text-lg font-semibold text-gray-900">{total}</div>
                 </div>
             </div>
         </div>

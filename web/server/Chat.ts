@@ -153,6 +153,8 @@ export async function CloseTask(session: string) {
 }
 
 export async function GetAllMessages(session: string): Promise<ChatMessage[]> {
+    if(session === "") return [];
+    
     const chatHistory = await db.query.messagesTable.findMany({
         where: eq(messagesTable.sessionId, session),
         orderBy: asc(messagesTable.createdAt),
