@@ -133,3 +133,22 @@ export async function GetAverageChatLength() {
     const average = parseFloat(result[0]?.avgLength || '0');
     return average.toFixed(1);
 }
+
+export async function getComplexityDistribution() {
+  try {
+    const distribution = await db
+      .select({
+        complexity: chatSessions.complexity,
+        count: count(chatSessions.id),
+      })
+      .from(chatSessions)
+      .where(sql`${chatSessions.complexity} BETWEEN 1 AND 10`)
+      .groupBy(chatSessions.complexity)
+      .orderBy(chatSessions.complexity);
+
+    return distribution;
+  } catch (error) {
+    console.error("Ошибка при получении распределения:", error);
+    return [];
+  }
+}

@@ -1,16 +1,22 @@
 'use client'
 
-import { redirect } from "next/navigation";
 import Button from "./Button";
 import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
 
+// Определяем соответствие имен путям
+const PATH_MAP: Record<string, string> = {
+    "Чат": "/operator",
+    "Статистика": "/dashboard",
+};
+
 export default function OperatorHeader({
     headers,
     activeHeader,
-    onTabClick,
-}: OperatorHeaderProps) {
-
+}: {
+    headers: string[],
+    activeHeader: string,
+}) {
     const router = useRouter();
 
     function exit() {
@@ -26,7 +32,8 @@ export default function OperatorHeader({
                 {headers.map((header) => (
                     <div
                         key={header}
-                        onClick={() => onTabClick(header)}
+                        // Используем внутренний маппинг для навигации
+                        onClick={() => router.push(PATH_MAP[header] || "/")}
                         className={`cursor-pointer transition duration-300 font-medium text-[16px] leading-[20px] 
                         ${header === activeHeader
                                 ? "underline underline-offset-[12px] decoration-primary decoration-2"
@@ -42,9 +49,4 @@ export default function OperatorHeader({
             </div>
         </header>
     );
-}
-interface OperatorHeaderProps {
-    headers: string[],
-    activeHeader: string,
-    onTabClick: (tab: string) => void,
 }

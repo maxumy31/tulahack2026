@@ -1,70 +1,50 @@
-'use client'
-
-import { useState, useEffect } from 'react';
-import { redirect, useRouter } from 'next/navigation';
+import OperatorHeader from '../components/OperatorHeader';
+import { 
+    CountAllClosedSessions, 
+    CountAllOpenSessions, 
+    CountAllSessions, 
+    GetAverageChatLength, 
+    GetClosingStats, 
+    getComplexityDistribution as GetComplexityDistribution, 
+    GetDailyClosedSessionsCount, 
+    GetDailyCreatedSessionsCount, 
+    GetMessageCountDistribution 
+} from '@/server/Chart';
+import StatusPieChart from './components/StatusPieChart';
+import StatsCard from './components/StatsCard';
 import RAGToggle from './components/RAGToggle';
 import GenerateReportButton from './components/GenerateReportButton';
-import OperatorHeader from '../components/OperatorHeader';
-import { CountAllClosedSessions, CountAllOpenSessions, CountAllSessions, GetAverageChatLength, GetClosingStats, GetDailyClosedSessionsCount, GetDailyCreatedSessionsCount, GetMessageCountDistribution } from '@/server/Chart';
-import StatusPieChart from './components/StatusPieChart';
-import DashboardContent from './components/DashboardContent';
-import StatsCard from './components/StatsCard';
+import { redirect } from 'next/navigation';
+import ChartCard from './components/ChartCard';
 
-
-export default function DashboardPage() {
-    const [totalTickets, setTotalTickets] = useState<number>(0);
-    const [openTickets, setOpenTickets] = useState<number>(0);
-    const [closedTickets, setClosedTickets] = useState<number>(0);
-
-    const [humanBotClosedTickets, sethumanBotClosedTickets] = useState<{
-        label: string,
-        value: number
-    }[]>()
-
-    const [closedDistributionByMessages, setClosedDistributionByMessages] = useState<{
-        label: string,
-        value: number
-    }[]>();
-
-    const [openedTicketsPerDay, setOpenedTicketsPerDay] = useState<number>(0);
-    const [closedTicketsPerDay, setClosedTicketsPerDay] = useState<number>(0);
-    const [avgChatLength, setAvgChatLength] = useState<string>("0");
-
-    async function SyncData() {
-        const currentTotalTickets = await CountAllSessions() || 0;
-        const currentOpenTickets = await CountAllOpenSessions() || 0;
-        const currentClosedTickets = await CountAllClosedSessions() || 0;
-
-        setTotalTickets(currentTotalTickets);
-        setOpenTickets(currentOpenTickets);
-        setClosedTickets(currentClosedTickets);
-
-        const humanBotClosedTickets = await GetClosingStats();
-        sethumanBotClosedTickets(humanBotClosedTickets);
-
-        const closedDistributionByMessages = await GetMessageCountDistribution();
-        setClosedDistributionByMessages(closedDistributionByMessages);
-
-        const openedTicketsPerDay = await GetDailyCreatedSessionsCount();
-        setOpenedTicketsPerDay(openedTicketsPerDay);
-
-        const closedTicketsPerDay = await GetDailyClosedSessionsCount();
-        setClosedTicketsPerDay(closedTicketsPerDay);
-
-        const avgChatLength = await GetAverageChatLength();
-        setAvgChatLength(avgChatLength);
-    }
-
-    useEffect(() => {
-        SyncData();
-    }, [])
+export default async function DashboardPage() {
+    const [
+        totalTickets,
+        openTickets,
+        closedTickets,
+        humanBotClosedTickets,
+        closedDistributionByMessages,
+        openedTicketsPerDay,
+        closedTicketsPerDay,
+        avgChatLength,
+        complexityDistribution,
+    ] = await Promise.all([
+        CountAllSessions(),
+        CountAllOpenSessions(),
+        CountAllClosedSessions(),
+        GetClosingStats(),
+        GetMessageCountDistribution(),
+        GetDailyCreatedSessionsCount(),
+        GetDailyClosedSessionsCount(),
+        GetAverageChatLength(),
+        GetComplexityDistribution()
+    ]);
 
     return (
         <div className="min-h-screen bg-base-100">
             <OperatorHeader
                 headers={["Чат", "Статистика"]}
                 activeHeader="Статистика"
-                onTabClick={(tab) => { redirect("/operator"); }}
             />
             <div className="max-w-7xl mx-auto">
                 <div className="mb-10 pt-4">
@@ -149,6 +129,16 @@ export default function DashboardPage() {
                                     })
                                     : []
                             } />
+                    </div>
+                    <div>
+                        <ChartCard title="Распределение задач по сложности" id="123" 
+                            data={complexityDistribution.map(tkt => {
+                                return {
+                                    hour : tkt.complexity || 0,
+                                    tickets : tkt.count,
+                                }  
+                            })
+                            }/>
                     </div>
 
                 </div>
