@@ -14,5 +14,5 @@ COPY . .
 
 EXPOSE 3000
 
-# В режиме dev билд не нужен, Next сам всё подхватит
-CMD ["npm", "run", "dev"]
+# Генерируем и применяем миграции, затем запускаем dev сервер
+CMD ["sh", "-c", "npm run db:generate && npm run db:migrate && npm run dev"]
