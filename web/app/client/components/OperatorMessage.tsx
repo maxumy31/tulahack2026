@@ -1,4 +1,4 @@
-export default function OperatorMessage({content} : OperatorMessageProps) {
+export default function OperatorMessage({ content }: OperatorMessageProps) {
     return (<>
         <div className="chat chat-start">
             <div className="chat-bubble chat-bubble-primary">{content}</div>
@@ -7,5 +7,5 @@ export default function OperatorMessage({content} : OperatorMessageProps) {
 }
 
 interface OperatorMessageProps extends React.HTMLProps<'div'> {
-   content : string,
+    content: string,
 }

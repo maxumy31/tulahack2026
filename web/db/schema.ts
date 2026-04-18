@@ -1,8 +1,15 @@
-import { pgTable, serial, text, timestamp, uuid, pgEnum, boolean } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, timestamp, uuid, pgEnum, boolean, integer } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
-// Определяем возможные состояния обработки
+
 export const chatStatusEnum = pgEnum("chat_status", ["bot", "operator"]);
+
+export const operators = pgTable("operators", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  token: text("token").notNull().unique(),
+  fullName: text("full_name").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
 
 export const chatSessions = pgTable("chat_sessions", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -10,6 +17,7 @@ export const chatSessions = pgTable("chat_sessions", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().$onUpdate(() => new Date()),
   isClosed: boolean().default(false),
+  complexity: integer("complexity").default(1),
 });
 
 export const messagesTable = pgTable("messages", {

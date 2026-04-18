@@ -1,12 +1,16 @@
-export default function WaitingMessage({ }: WaitingMessageProps) {
+export default function WaitingMessage(
+    { 
+        content = "Пользователь ожидает вашего ответа"
+    }: WaitingMessageProps) {
     return (<>
 
         <div className="text-center">
-            Пользователь ожидает вашего ответа
+            {content}
         </div>
 
     </>)
 }
 
 interface WaitingMessageProps extends React.HTMLProps<'div'> {
+    content? : string
 }
