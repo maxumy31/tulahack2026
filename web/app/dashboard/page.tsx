@@ -6,7 +6,7 @@ import StatsCard from './components/StatsCard';
 import RAGToggle from './components/RAGToggle';
 import GenerateReportButton from './components/GenerateReportButton';
 import ChartCard from './components/ChartCard';
-import OperatorHeader from '../components/OperatorHeader';
+import { useAuth } from '../hooks/useAuth';
 
 interface TicketStats {
     openedHuman: number;
@@ -22,11 +22,18 @@ interface ChartDataPoint {
 
 export default function DashboardPage() {
     const router = useRouter();
+    const { isLoading: authLoading, isAuthenticated } = useAuth();
     const [stats, setStats] = useState<TicketStats | null>(null);
     const [chartData, setChartData] = useState<Record<string, ChartDataPoint[]>>({});
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
+        if (authLoading) return;
+
+        if (!isAuthenticated) {
+            return;
+        }
+
         const fetchData = async () => {
             try {
                 const statsResponse = await fetch('/api/stats');
@@ -50,8 +57,27 @@ export default function DashboardPage() {
                 setIsLoading(false);
             }
         };
+
+        // Initial fetch
         fetchData();
-    }, []);
+
+        // Set up long polling - update data every 5 seconds
+        const pollInterval = setInterval(fetchData, 5000);
+
+        return () => clearInterval(pollInterval);
+    }, [authLoading, isAuthenticated]);
+
+    if (authLoading) {
+        return (
+            <div className="flex justify-center items-center min-h-screen bg-gray-50">
+                <span className="loading loading-spinner loading-lg text-primary"></span>
+            </div>
+        );
+    }
+
+    if (!isAuthenticated) {
+        return null;
+    }
 
     const handleScroll = (id: string) => {
         const element = document.getElementById(id);
