@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import OperatorMessage from "./components/OperatorMessage";
 import SendMessageButton from "./components/SendMessageButton";
 import UserMessage from "./components/UserMessage";
-import { GetAllMessages, SendUserMessage, StartNewChatSession } from "@/server/Chat";
+import { CloseTask, GetAllMessages, SendUserMessage, StartNewChatSession } from "@/server/Chat";
 import { useRouter } from "next/navigation";
 import WaitingMessage from "./../components/WaitingMessage";
 
@@ -15,6 +15,11 @@ export default function ClientPage({ }) {
     const router = useRouter();
     async function navigateBack() {
         router.push("/");
+    }
+
+    async function OnTaskSolve() {
+        CloseTask(chatState.session);
+        navigateBack();
     }
 
     const pollingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -91,11 +96,21 @@ export default function ClientPage({ }) {
         <>
             <div className="flex flex-col justify-center items-center min-h-screen">
                 <div className="border border-primary w-full max-w-[600px] h-[800px] rounded-[20px] flex flex-col bg-base-200 overflow-hidden">
+                    <div className="p-4 bg-primary text-primary-content flex flex-row justify-between">
+                        <div onClick={navigateBack} className="flex flex-row gap-4 hover:cursor-pointer">
+                            <svg className="ml-1" xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor">
+                                <path d="M640-200 200-480l440-280v560Zm-80-280Zm0 134v-268L350-480l210 134Z" />
+                            </svg>
+                            Назад
+                        </div>
 
-                    <div onClick={navigateBack} className="p-4 bg-primary text-primary-content">
-                        <svg className="ml-1 hover:scale-120 transition duration-200" xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor">
-                            <path d="M640-200 200-480l440-280v560Zm-80-280Zm0 134v-268L350-480l210 134Z" />
-                        </svg>
+                        <div className="flex flex-row gap-4 hover:cursor-pointer" onClick={OnTaskSolve}>
+                            <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor">
+                                <path d="M400-304 240-464l56-56 104 104 264-264 56 56-320 320Z" />
+                            </svg>
+                            Моя проблема решена
+                        </div>
+
                     </div>
 
 
@@ -112,7 +127,7 @@ export default function ClientPage({ }) {
                         }
                         {
                             chatState.chat.length > 0 && chatState.chat[chatState.chat.length - 1].from === 'client'
-                                ? <WaitingMessage />
+                                ? <WaitingMessage content="Сейчас ваш запрос обработает оператор" />
                                 : <></>
                         }
                     </div>

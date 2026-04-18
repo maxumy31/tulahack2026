@@ -1,5 +1,5 @@
 const serverState = {
-    useBot : false,
+    useBot : true,
 }
 
 async function SetUseBot(value : boolean) {

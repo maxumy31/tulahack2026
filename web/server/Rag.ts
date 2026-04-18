@@ -1,5 +1,5 @@
 'use server'
 
-export async function CallRag(request : string) {
+export async function GetRagResponse(request : string) {
     return "Rag response";
 }

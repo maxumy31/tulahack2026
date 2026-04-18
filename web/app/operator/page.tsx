@@ -19,11 +19,10 @@ export default function ClientPage({ }) {
     return (
         <>
             <div className="flex justify-center items-center min-h-screen bg-base-300 p-4">
-                <div className="flex w-full max-w-[1000px] h-[800px] rounded-[20px] bg-base-200 overflow-hidden">
+                <div className="flex w-full max-w-[1600px] h-[900px] rounded-[20px] bg-base-200 overflow-hidden">
 
                     <ChatSidebar onChatSelect={(session) => setActiveChatSession(session)}/>
                     <Chat session={activeChatSession} role="operator" canInteract/>
-                    
 
                 </div>
             </div>

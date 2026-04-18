@@ -79,6 +79,8 @@ export default function Chat({ session: initialSession, canInteract = true, role
     const initChat = async () => {
         let currentSession = initialSession;
 
+        if(currentSession === "") return;
+
         if (role === 'client' && !currentSession) {
             currentSession = await StartNewChatSession();
         }
@@ -133,7 +135,7 @@ export default function Chat({ session: initialSession, canInteract = true, role
                             </svg>
                         </div>
                     ) : (
-                        <div className="font-bold">Чат с пользователем</div>
+                        <div className="font-bold">Чат с клиентом</div>
                     )}
                 </div>
 
