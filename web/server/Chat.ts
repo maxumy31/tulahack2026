@@ -38,7 +38,7 @@ export async function SendUserMessage(content: string, session: string) {
 
     const isBot = await IsBotSession(session);
     if (isBot && !needOperator) {
-        const response = await GetRagResponse(content);
+        const [response, images] = await GetRagResponse(content);
         SendBotMessage(response, session);
     }
 
