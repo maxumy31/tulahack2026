@@ -1,4 +1,4 @@
-import { pgTable, serial, text, timestamp, uuid, pgEnum, boolean } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, timestamp, uuid, pgEnum, boolean, integer } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
 
@@ -17,7 +17,7 @@ export const chatSessions = pgTable("chat_sessions", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().$onUpdate(() => new Date()),
   isClosed: boolean().default(false),
-  complexity: serial("complexity"),
+  complexity: integer("complexity").default(1),
 });
 
 export const messagesTable = pgTable("messages", {
