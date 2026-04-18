@@ -31,3 +31,7 @@ export async function VerifyToken(token: string): Promise<Operator | null> {
         return null;
     }
 }
+
+export async function verifyTokenFromCookie(token: string): Promise<Operator | null> {
+    return VerifyToken(token);
+}

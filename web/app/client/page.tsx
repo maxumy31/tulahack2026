@@ -44,7 +44,8 @@ export default function ClientPage({ }) {
         const chat = await GetAllMessages(session);
         setChatState({
             session: session,
-            chat: chat
+            chat: chat,
+            operatorRequested: false
         });
     }
 
@@ -52,7 +53,8 @@ export default function ClientPage({ }) {
         const chat = await GetAllMessages(chatState.session);
         setChatState({
             session: chatState.session,
-            chat: chat
+            chat: chat,
+            operatorRequested: chatState.operatorRequested
         });
     }
 
@@ -68,10 +70,21 @@ export default function ClientPage({ }) {
         await FastPollMessages();
     }
 
-    const [chatState, setChatState] = useState<{ chat: ChatMessage[], session: string }>({
+    const handleRequestOperator = (complexity: number) => {
+        requestOperator(chatState.session, complexity);
+        setChatState(prev => ({
+            ...prev,
+            operatorRequested: true
+        }));
+    }
+
+    const [chatState, setChatState] = useState<{ chat: ChatMessage[], session: string, operatorRequested: boolean }>({
         chat: [],
-        session: ""
+        session: "",
+        operatorRequested: false
     });
+
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     console.log(chatState);
 
@@ -94,29 +107,54 @@ export default function ClientPage({ }) {
 
     return (
         <>
-            <div className="flex flex-col justify-center items-center min-h-screen">
-                <div className="border border-primary w-full max-w-[600px] h-[800px] rounded-[20px] flex flex-col bg-base-200 overflow-hidden">
-                    <div className="p-4 bg-primary text-primary-content flex flex-row justify-between">
-                        <div onClick={navigateBack} className="flex flex-row gap-4 hover:cursor-pointer">
-                            <svg className="ml-1" xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor">
-                                <path d="M640-200 200-480l440-280v560Zm-80-280Zm0 134v-268L350-480l210 134Z" />
-                            </svg>
-                            Назад
+            <div className="flex flex-col justify-center items-center min-h-screen bg-gradient-to-br from-base-200 via-base-300 to-base-200 p-4">
+                <div className="w-full max-w-3xl h-screen md:h-[900px] rounded-2xl flex flex-col bg-base-100 shadow-2xl overflow-hidden border border-base-300">
+                    {/* Header */}
+                    <div className="p-6 bg-gradient-to-r from-primary to-primary text-primary-content flex items-center gap-4">
+                        <div className="flex-shrink-0">
+                            <button onClick={navigateBack} className="flex flex-row gap-2 hover:cursor-pointer hover:opacity-80 transition-opacity">
+                                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor">
+                                    <path d="M640-200 200-480l440-280v560Zm-80-280Zm0 134v-268L350-480l210 134Z" />
+                                </svg>
+                                <span className="font-medium">Назад</span>
+                            </button>
                         </div>
 
-                        <div className="flex flex-row gap-4 hover:cursor-pointer" onClick={OnTaskSolve}>
-                            <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor">
-                                <path d="M400-304 240-464l56-56 104 104 264-264 56 56-320 320Z" />
-                            </svg>
-                            Моя проблема решена
+                        <div className="flex-1 flex justify-center">
+                            <h1 className="text-lg font-bold">Служба поддержки</h1>
                         </div>
 
+                        <div className="flex-shrink-0 flex gap-2">
+                            {!chatState.operatorRequested && (
+                                <button 
+                                    className="flex flex-row gap-2 hover:cursor-pointer hover:opacity-80 transition-opacity"
+                                    onClick={() => setIsModalOpen(true)}
+                                >
+                                <span className="font-medium">Вызвать оператора</span>
+                                </button>
+                            )}
+                            <button className="flex flex-row gap-2 hover:cursor-pointer hover:opacity-80 transition-opacity" onClick={OnTaskSolve}>
+                                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor">
+                                    <path d="M400-304 240-464l56-56 104 104 264-264 56 56-320 320Z" />
+                                </svg>
+                                <span className="font-medium">Решено</span>
+                            </button>
+                        </div>
                     </div>
 
-
-                    <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-base-100">
+                    {/* Chat Messages Area */}
+                    <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-base-100">
+                        {chatState.chat.length === 0 && (
+                            <div className="flex items-center justify-center h-full text-center">
+                                <div className="text-base-content opacity-60">
+                                    <p className="text-lg mb-2">Добро пожаловать!</p>
+                                    <p className="text-sm">Напишите ваш вопрос, и мы вам поможем</p>
+                                </div>
+                            </div>
+                        )}
                         {
                             chatState.chat.map((msg) => {
+                                if (msg.from === 'system') return null;
                                 switch (msg.from) {
                                     case "client":
                                         return <UserMessage content={msg.content} key={msg.id} />
@@ -132,13 +170,14 @@ export default function ClientPage({ }) {
                         }
                     </div>
 
-                    <div className="p-4 border-t border-base-300 bg-base-100">
-                        <form className="flex gap-2" onSubmit={(e) => e.preventDefault()}>
+                    {/* Input Area */}
+                    <div className="p-6 border-t border-base-300 bg-base-100">
+                        <form className="flex gap-3" onSubmit={(e) => e.preventDefault()}>
                             <input
                                 ref={messageInputRef}
                                 type="text"
                                 placeholder="Напишите сообщение..."
-                                className="input flex-1"
+                                className="input input-bordered flex-1 focus:outline-none focus:border-primary"
                             />
                             <SendMessageButton onClick={OnMessageSend} />
                         </form>
@@ -146,6 +185,12 @@ export default function ClientPage({ }) {
 
                 </div>
             </div >
+            
+            <ComplexityModal 
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                onConfirm={handleRequestOperator}
+            />
         </>
     );
 }
