@@ -6,6 +6,7 @@ export default function Button(
         children,
         className,
         size,
+        isInverted,
         ...props
     } : ButtonProps) {
 
@@ -19,7 +20,9 @@ export default function Button(
             size === "lg" || size == null ? "py-4 h-16" : "",
             size === "md" ? "py-2 h-8" : "",
             "transition-all duration-500 ease-in-out font-weight-[400]",
-            "text-primary hover:text-primary-content hover:bg-primary",
+            isInverted 
+            ? "text-primary-content hover:text-primary hover:bg-primary-content"
+            : "text-primary hover:text-primary-content hover:bg-primary",
             buttonType === "ghost" ? "btn-ghost" : ""
         )}
         >
@@ -31,6 +34,7 @@ export default function Button(
 export interface ButtonProps extends React.ComponentProps<'button'> {
     buttonType? : ButtonType,
     size?: ButtonSize,
+    isInverted?: boolean,
     children: React.ReactNode
 }
 

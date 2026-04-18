@@ -123,7 +123,7 @@ export default async function DashboardPage() {
                     </div>
                     <div>
                         <StatusPieChart
-                            title="Процент задач, с которыми ИИ не справился"
+                            title="Распределение задач по тому, смог ли их решить ИИ"
                             data={
                                 [
                                     {

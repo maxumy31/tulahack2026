@@ -9,6 +9,7 @@ import { CloseTask, GetAllMessages, RequestOperator, SendUserMessage, StartNewCh
 import { useRouter } from "next/navigation";
 import WaitingMessage from "./../components/WaitingMessage";
 import ComplexityModal from "./components/ComplexityModal";
+import Button from "../components/Button";
 
 
 export default function ClientPage({ }) {
@@ -27,7 +28,6 @@ export default function ClientPage({ }) {
     const LongPollMessages = async () => {
         try {
             const chat = await GetAllMessages(chatState.session);
-            console.log("polling");
             if (chat.length !== chatState.chat.length) {
                 setChatState(prev => ({
                     ...prev,
@@ -109,18 +109,18 @@ export default function ClientPage({ }) {
 
     return (
         <>
-            <div className="flex flex-col justify-center items-center min-h-screen p-4 bg-base-300">
-                <div className="w-full max-w-4xl h-screen md:h-[900px] rounded-2xl flex flex-col bg-base-100 overflow-hidden border border-base-300">
+            <div className="flex flex-col justify-center items-center min-h-screen p-4 bg-base-100">
+                <div className="w-full max-w-4xl h-screen md:h-[900px] border-primary rounded-2xl flex flex-col bg-base-100 overflow-hidden border border-base-300">
 
-                    <div className="p-6 py-8 bg-gradient-to-r from-primary to-primary text-primary-content flex items-center justify-between">
+                    <div className="p-6 py-4 bg-gradient-to-r from-primary to-primary text-primary-content flex items-center justify-between">
 
                         <div className="flex-1">
-                            <button onClick={navigateBack} className="hover:cursor-pointer flex items-center gap-2 hover:opacity-80 transition-opacity text-base font-medium">
+                            <Button onClick={navigateBack} isInverted>
                                 <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor">
                                     <path d="M640-200 200-480l440-280v560Zm-80-280Zm0 134v-268L350-480l210 134Z" />
                                 </svg>
                                 <span>Назад</span>
-                            </button>
+                            </Button>
                         </div>
 
 
@@ -131,19 +131,19 @@ export default function ClientPage({ }) {
 
                         <div className="flex-1 flex items-center justify-end gap-4 text-base font-medium">
                             {!chatState.operatorRequested && chatState.chat.length != 0 && (
-                                <button
-                                    className="hover:opacity-80 transition-opacity hover:cursor-pointer"
+                                <Button 
+                                    isInverted
                                     onClick={() => setIsModalOpen(true)}
                                 >
                                     Вызвать оператора
-                                </button>
+                                </Button>
                             )}
-                            <button className="flex items-center gap-1 hover:opacity-80 transition-opacity hover:cursor-pointer" onClick={OnTaskSolve}>
+                            <Button onClick={OnTaskSolve} isInverted>
                                 <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor">
                                     <path d="M400-304 240-464l56-56 104 104 264-264 56 56-320 320Z" />
                                 </svg>
                                 <span>Решено</span>
-                            </button>
+                            </Button>
                         </div>
                     </div>
 
@@ -167,14 +167,14 @@ export default function ClientPage({ }) {
                         }
                     </div>
 
-                    {/* Input Area */}
+
                     <div className="p-6 border-t border-base-300 bg-base-100">
-                        <form className="flex gap-3" onSubmit={(e) => e.preventDefault()}>
+                        <form className="flex flex-row gap-3 justify-center align-center" onSubmit={(e) => e.preventDefault()}>
                             <input
                                 ref={messageInputRef}
                                 type="text"
                                 placeholder="Напишите сообщение..."
-                                className="input input-bordered flex-1 focus:outline-none focus:border-primary"
+                                className="input input-bordered flex-1 focus:outline-none focus:border-primary h-16"
                             />
                             <SendMessageButton onClick={OnMessageSend} />
                         </form>

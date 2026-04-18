@@ -10,6 +10,11 @@ services:
       - "5432:5432"
     volumes:
       - db_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U myuser -d mydatabase"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   web:
     build:
@@ -21,12 +26,16 @@ services:
     volumes:
       - ./web:/app
       - /app/node_modules
+      - /app/.next
     environment:
       DATABASE_URL: postgresql://myuser:mypassword@db:5432/mydatabase
       NODE_ENV: development
       WATCHPACK_POLLING: true
+      RAG_URI: http://backend:8000/chat_request
+      IMG_URI: http://backend:8000/img
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
   backend:
     build:
