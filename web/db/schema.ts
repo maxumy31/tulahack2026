@@ -4,6 +4,13 @@ import { relations } from "drizzle-orm";
 // Определяем возможные состояния обработки
 export const chatStatusEnum = pgEnum("chat_status", ["bot", "operator"]);
 
+export const operators = pgTable("operators", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  token: text("token").notNull().unique(),
+  fullName: text("full_name").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const chatSessions = pgTable("chat_sessions", {
   id: uuid("id").defaultRandom().primaryKey(),
   status: chatStatusEnum("status").default("bot").notNull(),
