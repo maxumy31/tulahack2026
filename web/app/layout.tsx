@@ -21,6 +21,7 @@ export default function RootLayout({
   return (
     <html
       lang="ru"
+      data-theme="light"
       className={`${montserrat.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col font-sans">
