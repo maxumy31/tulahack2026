@@ -6,41 +6,57 @@ import StatsCard from './components/StatsCard';
 import RAGToggle from './components/RAGToggle';
 import GenerateReportButton from './components/GenerateReportButton';
 import ChartCard from './components/ChartCard';
-import { GetTicketStats, type TicketStats } from '@/server/State';
+
+interface TicketStats {
+    openedHuman: number;
+    openedBot: number;
+    closedHuman: number;
+    closedBot: number;
+}
+
+interface ChartDataPoint {
+    hour: number;
+    tickets: number;
+}
 
 export default function DashboardPage() {
     const router = useRouter();
     const [stats, setStats] = useState<TicketStats | null>(null);
+    const [chartData, setChartData] = useState<Record<string, ChartDataPoint[]>>({});
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        const fetchStats = async () => {
+        const fetchData = async () => {
             try {
-                const data = await GetTicketStats();
-                setStats(data);
+                // Fetch stats
+                const statsResponse = await fetch('/api/stats');
+                if (!statsResponse.ok) throw new Error('Failed to fetch stats');
+                const statsData = await statsResponse.json();
+                setStats(statsData);
+
+                // Fetch chart data for all categories
+                const categories = ['total', 'opened', 'closed', 'opened-human', 'opened-bot', 'closed-human', 'closed-bot'];
+                const data: Record<string, ChartDataPoint[]> = {};
+                
+                for (const category of categories) {
+                    const response = await fetch(`/api/chart?category=${category}`);
+                    if (!response.ok) throw new Error(`Failed to fetch chart data for ${category}`);
+                    data[category] = await response.json();
+                }
+                
+                setChartData(data);
             } catch (error) {
-                console.error('Failed to fetch stats:', error);
+                console.error('Failed to fetch data:', error);
             } finally {
                 setIsLoading(false);
             }
         };
-        fetchStats();
+        fetchData();
     }, []);
 
     const handleScroll = (id: string) => {
         const element = document.getElementById(id);
         element?.scrollIntoView({ behavior: 'smooth' });
-    };
-
-    // Mock data generators
-    const generateChartData = (baseValue: number) => {
-        return Array.from({ length: 24 }, (_, i) => ({
-            hour: i,
-            tickets: Math.max(0, Math.round(
-                baseValue * Math.sin((i - 6) * Math.PI / 12) * 0.7 +
-                Math.random() * baseValue * 0.3
-            ))
-        }));
     };
 
     const totalTickets = stats ? stats.openedHuman + stats.openedBot + stats.closedHuman + stats.closedBot : 0;
@@ -139,37 +155,37 @@ export default function DashboardPage() {
                     <ChartCard
                         title="Всего заявок"
                         id="chart-total"
-                        data={generateChartData(totalTickets)}
+                        data={chartData['total'] || []}
                     />
                     <ChartCard
                         title="Всего открыто"
                         id="chart-opened"
-                        data={generateChartData(openedTickets)}
+                        data={chartData['opened'] || []}
                     />
                     <ChartCard
                         title="Всего закрыто"
                         id="chart-closed"
-                        data={generateChartData(closedTickets)}
+                        data={chartData['closed'] || []}
                     />
                     <ChartCard
                         title="Открыта — передано человеку"
                         id="chart-opened-human"
-                        data={generateChartData(stats?.openedHuman || 0)}
+                        data={chartData['opened-human'] || []}
                     />
                     <ChartCard
                         title="Открыта — обрабатывается ботом"
                         id="chart-opened-bot"
-                        data={generateChartData(stats?.openedBot || 0)}
+                        data={chartData['opened-bot'] || []}
                     />
                     <ChartCard
                         title="Закрыта — передано человеку"
                         id="chart-closed-human"
-                        data={generateChartData(stats?.closedHuman || 0)}
+                        data={chartData['closed-human'] || []}
                     />
                     <ChartCard
                         title="Закрыта — обрабатывается ботом"
                         id="chart-closed-bot"
-                        data={generateChartData(stats?.closedBot || 0)}
+                        data={chartData['closed-bot'] || []}
                     />
                 </div>
             </div>

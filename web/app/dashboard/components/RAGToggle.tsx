@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react';
-import { GetUseBot, SetUseBot } from '@/server/State';
 
 export default function RAGToggle() {
     const [isRagEnabled, setIsRagEnabled] = useState(true);
@@ -10,8 +9,10 @@ export default function RAGToggle() {
     useEffect(() => {
         const fetchBotStatus = async () => {
             try {
-                const status = await GetUseBot();
-                setIsRagEnabled(status);
+                const response = await fetch('/api/bot');
+                if (!response.ok) throw new Error('Failed to fetch bot status');
+                const data = await response.json();
+                setIsRagEnabled(data.useBot);
             } catch (error) {
                 console.error('Failed to fetch bot status:', error);
             }
@@ -33,7 +34,12 @@ export default function RAGToggle() {
                         const newValue = e.target.checked;
                         setIsLoading(true);
                         try {
-                            await SetUseBot(newValue);
+                            const response = await fetch('/api/bot', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ useBot: newValue })
+                            });
+                            if (!response.ok) throw new Error('Failed to update bot status');
                             setIsRagEnabled(newValue);
                         } catch (error) {
                             console.error('Failed to update bot status:', error);
