@@ -1,4 +1,4 @@
-export default function UserMessage({content} : UserMessageProps) {
+export default function UserMessage({ content }: UserMessageProps) {
     return (<>
         <div className="chat chat-end">
             <div className="chat-bubble text-black bg-base-200">{content}</div>
@@ -7,5 +7,5 @@ export default function UserMessage({content} : UserMessageProps) {
 }
 
 interface UserMessageProps extends React.HTMLProps<'div'> {
-   content : string,
+    content: string,
 }
