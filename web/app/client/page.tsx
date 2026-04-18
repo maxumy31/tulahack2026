@@ -7,7 +7,7 @@ import SendMessageButton from "./components/SendMessageButton";
 import UserMessage from "./components/UserMessage";
 import { GetAllMessages, SendUserMessage, StartNewChatSession } from "@/server/Chat";
 import { useRouter } from "next/navigation";
-import WaitingMessage from "./components/WaitingMessage";
+import WaitingMessage from "./../components/WaitingMessage";
 
 
 export default function ClientPage({ }) {
@@ -16,6 +16,23 @@ export default function ClientPage({ }) {
     async function navigateBack() {
         router.push("/");
     }
+
+    const pollingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const LongPollMessages = async () => {
+        try {
+            const chat = await GetAllMessages(chatState.session);
+            setChatState(prev => ({
+                ...prev,
+                chat: chat
+            }));
+        } catch (error) {
+            console.error("Ошибка при получении сообщений:", error);
+        } finally {
+            if (chatState.session) {
+                pollingTimeoutRef.current = setTimeout(LongPollMessages, 3000);
+            }
+        }
+    };
 
     const CreateAndLoadChat = async () => {
         const session = await StartNewChatSession();
@@ -26,7 +43,7 @@ export default function ClientPage({ }) {
         });
     }
 
-    const PollMessages = async () => {
+    const FastPollMessages = async () => {
         const chat = await GetAllMessages(chatState.session);
         setChatState({
             session: chatState.session,
@@ -34,7 +51,7 @@ export default function ClientPage({ }) {
         });
     }
 
-    const OnMessageSent = async () => {
+    const OnMessageSend = async () => {
         const messageValue = messageInputRef.current?.value;
         if (!messageValue || messageValue.trim() === "") return;
 
@@ -42,8 +59,8 @@ export default function ClientPage({ }) {
             messageInputRef.current.value = "";
         }
 
-        await SendUserMessage(messageValue, "123");
-        await PollMessages();
+        await SendUserMessage(messageValue, chatState.session);
+        await FastPollMessages();
     }
 
     const [chatState, setChatState] = useState<{ chat: ChatMessage[], session: string }>({
@@ -57,7 +74,18 @@ export default function ClientPage({ }) {
 
     useEffect(() => {
         CreateAndLoadChat();
+        return () => {
+            if (pollingTimeoutRef.current) {
+                clearTimeout(pollingTimeoutRef.current);
+            }
+        }
     }, [])
+
+    useEffect(() => {
+        if (chatState.session) {
+            pollingTimeoutRef.current = setTimeout(LongPollMessages, 3000);
+        }
+    }, [chatState.session]);
 
     return (
         <>
@@ -83,8 +111,8 @@ export default function ClientPage({ }) {
                             })
                         }
                         {
-                            chatState.chat.length > 0 && chatState.chat[chatState.chat.length-1].from === 'client'
-                                ? <WaitingMessage/>
+                            chatState.chat.length > 0 && chatState.chat[chatState.chat.length - 1].from === 'client'
+                                ? <WaitingMessage />
                                 : <></>
                         }
                     </div>
@@ -98,7 +126,7 @@ export default function ClientPage({ }) {
                                 placeholder="Напишите сообщение..."
                                 className="input flex-1"
                             />
-                            <SendMessageButton onClick={OnMessageSent} />
+                            <SendMessageButton onClick={OnMessageSend} />
                         </form>
                     </div>
 

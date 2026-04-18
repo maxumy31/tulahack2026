@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import clsx from "clsx";
 import UserMessage from "./UserMessage";
 import OperatorMessage from "./OperatorMessage";
-import WaitingMessage from "./WaitingMessage";
+import WaitingMessage from "../../components/WaitingMessage";
 import SendMessageButton from "./SendMessageButton";
 import { GetAllMessages, SendUserMessage, SendOperatorMessage, StartNewChatSession } from "@/server/Chat";
 
@@ -18,15 +18,66 @@ interface ChatProps {
 export default function Chat({ session: initialSession, canInteract = true, role }: ChatProps) {
     const router = useRouter();
     const messageInputRef = useRef<HTMLInputElement>(null);
-    
+
+    const pollingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const LongPollMessages = async () => {
+        try {
+            const chat = await GetAllMessages(chatState.session);
+            setChatState(prev => ({
+                ...prev,
+                chat: chat
+            }));
+        } catch (error) {
+            console.error("Ошибка при получении сообщений:", error);
+        } finally {
+            if (chatState.session) {
+                pollingTimeoutRef.current = setTimeout(LongPollMessages, 3000);
+            }
+        }
+    };
+
+
     const [chatState, setChatState] = useState<{ chat: ChatMessage[], session: string }>({
         chat: [],
         session: initialSession || ""
     });
 
+    useEffect(() => {
+        let isMounted = true;
+        console.log(chatState.session);
+
+        const poll = async () => {
+            if (!chatState.session || !isMounted) return;
+            try {
+                const messages = await GetAllMessages(chatState.session);
+                if (isMounted) {
+                    setChatState(prev => ({ ...prev, chat: messages }));
+                }
+            } catch (e) {
+                console.error(e);
+            } finally {
+                if (isMounted) {
+                    pollingTimeoutRef.current = setTimeout(poll, 3000);
+                }
+            }
+        };
+
+        if (chatState.session) {
+            poll();
+        }
+
+        return () => {
+            isMounted = false;
+            if (pollingTimeoutRef.current) clearTimeout(pollingTimeoutRef.current);
+        };
+    }, [chatState.session]);
+
+    useEffect(() => {
+        initChat();
+    }, [initialSession]);
+
     const initChat = async () => {
-        let currentSession = chatState.session;
-        console.log(currentSession);
+        let currentSession = initialSession;
 
         if (role === 'client' && !currentSession) {
             currentSession = await StartNewChatSession();
@@ -52,7 +103,7 @@ export default function Chat({ session: initialSession, canInteract = true, role
         if (!messageValue || messageValue.trim() === "" || !chatState.session) return;
 
         console.log(messageValue);
-        
+
         if (messageInputRef.current) messageInputRef.current.value = "";
 
         if (role === 'client') {
@@ -64,10 +115,6 @@ export default function Chat({ session: initialSession, canInteract = true, role
         await pollMessages();
     };
 
-    useEffect(() => {
-        initChat();
-    }, [initialSession]);
-
     return (
         <div className={clsx(
             "flex flex-col w-full",
@@ -77,7 +124,7 @@ export default function Chat({ session: initialSession, canInteract = true, role
                 "flex flex-col bg-base-200 overflow-hidden",
                 role === 'client' ? "border border-primary w-full max-w-[600px] h-[800px] rounded-[20px]" : "flex-1"
             )}>
-                
+
                 <div className="p-4 bg-primary text-primary-content flex items-center gap-4">
                     {role === 'client' ? (
                         <div onClick={() => router.push("/")} className="cursor-pointer">
@@ -92,11 +139,11 @@ export default function Chat({ session: initialSession, canInteract = true, role
 
                 <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-base-100">
                     {chatState.chat.map((msg) => (
-                        msg.from === "client" 
+                        msg.from === "client"
                             ? <UserMessage content={msg.content} key={msg.id} />
                             : <OperatorMessage content={msg.content} key={msg.id} />
                     ))}
-                    
+
                     {chatState.chat.length > 0 && chatState.chat[chatState.chat.length - 1].from === 'client' && (
                         <WaitingMessage />
                     )}
@@ -104,15 +151,15 @@ export default function Chat({ session: initialSession, canInteract = true, role
 
                 {canInteract && (
                     <div className="p-4 border-t border-base-300 bg-base-100">
-                        <form className="flex gap-2" onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }}>
+                        <div className="flex gap-2">
                             <input
                                 ref={messageInputRef}
                                 type="text"
                                 placeholder="Напишите сообщение..."
                                 className="input input-bordered flex-1"
                             />
-                            <SendMessageButton onClick={() => {}} />
-                        </form>
+                            <SendMessageButton onClick={() => { handleSendMessage(); }} />
+                        </div>
                     </div>
                 )}
             </div>

@@ -1,7 +1,7 @@
 export default function OperatorMessage({content} : OperatorMessageProps) {
     return (<>
-        <div className="chat chat-start">
-            <div className="chat-bubble chat-bubble-primary">{content}</div>
+        <div className="chat chat-end">
+            <div className="chat-bubble text-black bg-base-200">{content}</div>
         </div>
     </>)
 }

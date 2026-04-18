@@ -7,7 +7,7 @@ import SendMessageButton from "./components/SendMessageButton";
 import UserMessage from "./components/UserMessage";
 import { GetAllMessages, SendUserMessage, StartNewChatSession } from "@/server/Chat";
 import { useRouter } from "next/navigation";
-import WaitingMessage from "./components/WaitingMessage";
+import WaitingMessage from "../components/WaitingMessage";
 import Chat from "./components/Chat";
 import ChatSidebar from "./components/ChatSidebar";
 
