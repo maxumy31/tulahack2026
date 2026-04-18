@@ -42,7 +42,8 @@ async def get_answer(request: ChatRequest) -> dict:
     try:
         logger.info(f"Получен запрос: {request.question}")
         answer = await Rag.get_answer(request.question)
-        return {"answer": answer}
+        return {"answer": answer,
+                "imageIds": ["img_1", "img_2", "img_3"]}
     except Exception as e:
         logger.error(f"Ошибка: {e}")
         raise HTTPException(

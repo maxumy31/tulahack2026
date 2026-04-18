@@ -27,6 +27,7 @@ export const messagesTable = pgTable("messages", {
     .notNull(),
   content: text("content").notNull(),
   from: text("from").notNull(), 
+  imageIds: text("image_ids"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
