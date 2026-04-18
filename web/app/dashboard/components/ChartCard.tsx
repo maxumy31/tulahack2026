@@ -16,16 +16,13 @@ export default function ChartCard({ title, id, data }: ChartCardProps) {
             
             <div className="overflow-x-auto">
                 <div className="flex gap-1" style={{ minWidth: '1000px' }}>
-                    {/* Y-axis */}
                     <div className="flex flex-col justify-between text-xs text-gray-500 pr-3 w-10 flex-shrink-0" style={{ height: `${chartHeight}px` }}>
                         <div>{maxTickets}</div>
                         <div>{Math.round(maxTickets * 0.5)}</div>
                         <div>0</div>
                     </div>
 
-                    {/* Chart area */}
                     <div className="flex-1 relative">
-                        {/* Grid lines */}
                         <div className="absolute inset-0 flex flex-col justify-between border-l border-gray-200">
                             <div className="border-t border-gray-200 w-full"></div>
                             <div className="border-t border-gray-200 w-full"></div>

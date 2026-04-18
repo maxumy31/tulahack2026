@@ -6,6 +6,8 @@ import { eq, asc, count, and, desc } from "drizzle-orm";
 import { GetRagResponse } from "./Rag";
 import { LazyCleanup } from "./Cleanup";
 
+setTimeout(LazyCleanup, 1000);
+
 export async function StartNewChatSession() {
     const [newSession] = await db
         .insert(chatSessions)
@@ -71,9 +73,6 @@ async function ConnectOperator(session: string) {
     await db.update(chatSessions)
         .set({ "status": "operator" })
         .where(eq(chatSessions.id, session));
-
-    // Скрипт для очистки БД
-    LazyCleanup();
 }
 
 async function IsBotSession(session: string) {
@@ -109,10 +108,6 @@ export async function SendOperatorMessage(content: string, session: string) {
         .returning();
 
     console.log(`[SERVER] Operator message added to session: ${session}`);
-
-    // Скрипт для очистки БД
-    LazyCleanup();
-    
     return newMsg;
 }
 

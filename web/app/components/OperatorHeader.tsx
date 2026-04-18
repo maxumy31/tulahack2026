@@ -1,6 +1,9 @@
+'use client'
+
 import { redirect } from "next/navigation";
 import Button from "./Button";
 import Cookies from "js-cookie";
+import { useRouter } from "next/navigation";
 
 export default function OperatorHeader({
     headers,
@@ -8,9 +11,11 @@ export default function OperatorHeader({
     onTabClick,
 }: OperatorHeaderProps) {
 
-    async function exit() {
+    const router = useRouter();
+
+    function exit() {
         Cookies.remove("token");
-        redirect("/");
+        router.push("/");
     }
 
     return (
@@ -23,9 +28,9 @@ export default function OperatorHeader({
                         key={header}
                         onClick={() => onTabClick(header)}
                         className={`cursor-pointer transition duration-300 font-medium text-[16px] leading-[20px] 
-                        ${header === activeHeader 
-                            ? "underline underline-offset-[12px] decoration-primary decoration-2" 
-                            : "hover:underline hover:underline-offset-[12px] hover:decoration-primary/50 decoration-transparent transition-all"}`}
+                        ${header === activeHeader
+                                ? "underline underline-offset-[12px] decoration-primary decoration-2"
+                                : "hover:underline hover:underline-offset-[12px] hover:decoration-primary/50 decoration-transparent transition-all"}`}
                     >
                         {header}
                     </div>

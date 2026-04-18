@@ -12,7 +12,6 @@ export default function AuthPage() {
     const [isAuthSubmitting, setIsAuthSubmitting] = useState(false);
 
     useEffect(() => {
-        // Проверяем, авторизован ли пользователь
         const checkAuth = async () => {
             try {
                 const response = await fetch('/api/auth', {

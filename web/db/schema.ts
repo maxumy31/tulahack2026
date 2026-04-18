@@ -1,7 +1,7 @@
 import { pgTable, serial, text, timestamp, uuid, pgEnum, boolean } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
-// Определяем возможные состояния обработки
+
 export const chatStatusEnum = pgEnum("chat_status", ["bot", "operator"]);
 
 export const operators = pgTable("operators", {

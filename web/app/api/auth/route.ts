@@ -16,17 +16,16 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
         }
 
-        // Создаём response с cookie
         const response = NextResponse.json({
             success: true,
             operator,
         });
 
         response.cookies.set('token', token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
+            httpOnly: false,
+            secure: false,
             sameSite: 'lax',
-            maxAge: 60 * 60 * 24 * 30, // 30 дней
+            maxAge: 60 * 60 * 24 * 30,
         });
 
         return response;
