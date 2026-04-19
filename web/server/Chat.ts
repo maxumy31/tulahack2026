@@ -102,8 +102,7 @@ async function SendBotMessage(content: string, session: string, imageIds?: strin
             imageIds: imageIds ? JSON.stringify(imageIds) : null,
         })
         .returning();
-    console.log(imageIds);
-    console.log(`[SERVER] Bot message added to session: ${session}`);
+    console.log(`[SERVER] Bot message added to session: ${session}. Images : ${imageIds}`);
     return newMsg;
 }
 
@@ -157,8 +156,20 @@ export async function GetAllClosedSessions() {
 }
 
 export async function CloseTask(session: string) {
+    const messageCountResult = await db
+        .select({ count: count() })
+        .from(messagesTable)
+        .where(eq(messagesTable.sessionId, session));
+
+    const totalMessages = messageCountResult[0]?.count || 0;
+    
+    const calculatedComplexity = Math.min(10, Math.max(1, Math.ceil(totalMessages / 2)));
+
     await db.update(chatSessions)
-        .set({ isClosed: true })
+        .set({ 
+            isClosed: true, 
+            complexity: calculatedComplexity 
+        })
         .where(eq(chatSessions.id, session));
 }
 
@@ -185,7 +196,7 @@ export async function GetAllMessages(session: string): Promise<ChatMessage[]> {
 
 export async function RequestOperator(session: string, complexity: number) {
     await db.update(chatSessions)
-        .set({ status: "operator" })
+        .set({ status: "operator", complexity: complexity })
         .where(eq(chatSessions.id, session));
 
     console.log("[SERVER] Update result:", session, " ", complexity);
