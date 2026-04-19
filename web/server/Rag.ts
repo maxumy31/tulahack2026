@@ -13,7 +13,7 @@ export async function GetRagResponse(request: string) {
     const json = await response.json();
     console.log(json);
     const asnwer = json.answer;
-    const images = json.imageIds || [0];
+    const images = json.imageIds || [];
     return [asnwer, images];
 }
 

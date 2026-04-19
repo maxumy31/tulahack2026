@@ -10,6 +10,8 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 # Копируем файлы с зависимостями
 COPY pyproject.toml uv.lock* ./
 
+RUN apt-get update && apt-get install -y --no-install-recommends build-essential libpq-dev && rm -rf /var/lib/apt/lists/*
+
 # Устанавливаем зависимости
 RUN uv sync --frozen --no-dev
 
