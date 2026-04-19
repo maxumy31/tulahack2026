@@ -25,7 +25,7 @@ export default function RAGToggle() {
 
 
     return (
-        <div className="bg-white rounded-lg border border-gray-200 p-6 pb-16">
+        <div className="bg-white rounded-lg border border-gray-200 p-6 pb-12">
             <div className="flex items-center justify-between">
                 <h3 className="text-base font-semibold text-gray-900">
                     ИИ помощник

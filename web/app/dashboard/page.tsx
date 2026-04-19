@@ -97,7 +97,7 @@ export default async function DashboardPage() {
 
                     </div>
 
-                    <div className="lg:col-span-1 space-y-6 flex flex-col justify-between">
+                    <div className="lg:col-span-1 space-y-2 flex flex-col justify-between">
                         <RAGToggle />
                         <GenerateReportButton />
                     </div>
