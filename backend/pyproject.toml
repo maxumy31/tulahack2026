@@ -13,5 +13,6 @@ dependencies = [
     "openai",
     "load_dotenv",
     "psycopg2-binary",
-    "sentence-transformers"
+    "sentence-transformers",
+    "pandas"
 ]

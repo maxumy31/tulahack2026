@@ -1,13 +1,186 @@
+#ИНИЦИАЛИЗАЦИЯ БД ИЗ work_with_db.ipynb
+
+import json
+import psycopg2
+from psycopg2.extras import execute_batch
+
+DB_CONFIG = {
+    "host": "127.0.0.1",
+    "port": 5433,
+    "database": "ragdatabase",
+    "user": "raguser",
+    "password": "ragpassword"
+}
+
+DOCUMENT_NAMES = {
+    0: "01_Elicont_100___1_____04",
+    1: "02_Elicont_100_1__2____09_07",
+    2: "03_Elicont_100_2__3_____",
+    3: "04_Elicont_200___1_____22",
+    4: "05_Elicont_200_1__2____14_10",
+    5: "06_Elicont_200_2__3_____",
+    6: "07_",
+    7: "08_",
+    8: "09_",
+    9: "10_",
+    10: "11_",
+    11: "12_",
+    12: "13_",
+    13: "14_",
+    14: "15_",
+    15: "16_",
+    16: "17_",
+    17: "18_"
+}
+
+JSON_PATH = "all_filtered_chunks.json"
+
+# 1. Загружаем JSON
+with open(JSON_PATH, "r", encoding="utf-8") as f:
+    all_chunks = json.load(f)
+
+# 2. Проверка структуры
+if not isinstance(all_chunks, list):
+    raise ValueError("Ожидался список списков в all_filtered_chunks.json")
+
+# 3. Готовим записи для вставки
+rows_to_insert = []
+
+for doc_idx, doc_chunks in enumerate(all_chunks):
+    if not isinstance(doc_chunks, list):
+        raise ValueError(f"Элемент с индексом {doc_idx} не является списком чанков")
+
+    source_doc = DOCUMENT_NAMES.get(doc_idx)
+    if source_doc is None:
+        raise ValueError(f"Для индекса {doc_idx} нет имени документа в DOCUMENT_NAMES")
+
+    for chunk in doc_chunks:
+        if not isinstance(chunk, str):
+            continue
+
+        chunk = chunk.strip()
+        if not chunk:
+            continue
+
+        rows_to_insert.append((source_doc, chunk))
+
+print(f"Подготовлено {len(rows_to_insert)} чанков для вставки")
+
+# 4. Подключаемся к БД
+conn = psycopg2.connect(**DB_CONFIG)
+
+try:
+    with conn:
+        with conn.cursor() as cur:
+            # 5. Создаём расширение и таблицу
+            cur.execute("CREATE EXTENSION IF NOT EXISTS vector;")
+
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS chunks (
+                    id SERIAL PRIMARY KEY,
+                    source_doc TEXT NOT NULL,
+                    chunk TEXT NOT NULL,
+                    vector VECTOR(768)
+                );
+            """)
+
+            
+            # cur.execute("TRUNCATE TABLE chunks RESTART IDENTITY;")
+
+            # 6. Вставляем данные
+            execute_batch(
+                cur,
+                """
+                INSERT INTO chunks (source_doc, chunk)
+                VALUES (%s, %s)
+                """,
+                rows_to_insert,
+                page_size=500
+            )
+
+    print("Данные успешно занесены в БД")
+
+finally:
+    conn.close()
+
+import zipfile
+from pathlib import Path
+from sentence_transformers import SentenceTransformer
+
+model = SentenceTransformer("e5_custom/kaggle/working/e5_custom")
+
+
+import psycopg2
+
+def to_pgvector(vec):
+    return "[" + ",".join(str(float(x)) for x in vec) + "]"
+
+TARGET_DOC = "01_Elicont_100___1_____04"
+
+conn = psycopg2.connect(
+    host="127.0.0.1",
+    port=5433,
+    database="ragdatabase",
+    user="raguser",
+    password="ragpassword"
+)
+
+cur = conn.cursor()
+
+cur.execute("""
+    SELECT id, source_doc, chunk
+    FROM chunks
+    WHERE vector IS NULL
+    AND source_doc = %s
+""", (TARGET_DOC,))
+
+dataset = cur.fetchall()
+print(f"Найдено {len(dataset)} чанков для {TARGET_DOC}")
+
+ids = []
+texts = []
+
+for chunk_id, source_doc, chunk_text in dataset:
+    ids.append(chunk_id)
+    texts.append(f"passage: {source_doc}. {chunk_text}")
+
+embeddings = model.encode(
+    texts,
+    normalize_embeddings=True,
+    batch_size=32,
+    show_progress_bar=True
+)
+
+updates = [
+    (to_pgvector(emb), chunk_id)
+    for chunk_id, emb in zip(ids, embeddings)
+]
+
+cur.executemany("""
+    UPDATE chunks
+    SET vector = %s::vector
+    WHERE id = %s
+""", updates)
+
+conn.commit()
+cur.close()
+conn.close()
+
+print(f"Эмбеддинги для {TARGET_DOC} записаны")
+
+# КОНЕЦ ИНИЦИАЛИЗАЦИИ БД ИЗ work_with_db.ipynb
+
 from fastapi import FastAPI, HTTPException, status
 from fastapi.responses import Response
 from starlette.status import HTTP_500_INTERNAL_SERVER_ERROR
 
 from src.schemas.chat import ChatRequest
-from src.services.rag import Rag
-from src.services.image_service import ImageService  # ✅ новый импорт
 from src.database.database import SessionDep
 import logging
 from fastapi.middleware.cors import CORSMiddleware
+
+from pathlib import Path
+from fastapi.responses import FileResponse
 
 from dotenv import load_dotenv
 import os
@@ -47,10 +220,12 @@ conn = psycopg2.connect(
 
 load_dotenv()
 
-api_key = os.getenv("OPENROUTER_API_KEY")
+api_key = os.getenv("OPENROUTER_API_KEY", "67")
+base_url = os.getenv("LLM_URL", "https://openrouter.ai/api/v1")
+model_id = os.getenv("LLM_NAME", "inclusionai/ling-2.6-flash:free")
 
 client7 = OpenAI(
-    base_url="https://openrouter.ai/api/v1",
+    base_url=base_url,
     api_key=api_key
   )
 
@@ -137,7 +312,7 @@ async def get_answer(request: ChatRequest) -> dict:
     # Ищем релевантные абзацы
     search_results = semantic_search(question, top_k=12, conn=conn, model=model)
     if not search_results:
-        return "Не удалось найти подходящую информацию"
+        return { "answer": "Не удалось найти подходящую информацию", "imageIds": [] }
 
     # Промпт
     prompt = f"""
@@ -157,7 +332,7 @@ async def get_answer(request: ChatRequest) -> dict:
     # Запрос к LLM
     completion = client7.chat.completions.create(
       extra_body={},
-      model="openrouter/elephant-alpha",
+      model=model_id,
       messages=[
         {
           "role": "user",
@@ -181,23 +356,21 @@ async def get_answer(request: ChatRequest) -> dict:
         print("Ошибка: LLM не вернул ответ")
 
 
-@app.get("/img/{img_id}")
-async def get_img(
-        img_id: str,
-        db: SessionDep
-):
-    """Получение изображения из PostgreSQL"""
-
+async def get_img(img_id: str) -> FileResponse:
     logger.info(f"Запрос на картинку: {img_id}")
+    file_path = Path("src") / "data" / "img" / f"{img_id}.png"
 
-    # Валидация имени файла
-    if not ImageService.validate_filename(img_id):
+    # Для отладки
+    print(f"Ищем файл: {file_path}")
+    print(f"Абсолютный путь: {file_path.absolute()}")
+
+    if ".." in img_id or "/" in img_id or "\\" in img_id:
         logger.warning(f"Подозрительный запрос: {img_id}")
         raise HTTPException(status_code=400, detail="Invalid image ID")
 
-    # Сервисный слой
-    image_service = ImageService(db)
-    image = await image_service.get_image_by_filename(f"{img_id}.png")
+    if not file_path.exists():
+        logger.error(f"Ошибка: {img_id} не найдена")
+        raise HTTPException(status_code=404, detail="Image not found")
 
     return FileResponse(
         path=file_path,
