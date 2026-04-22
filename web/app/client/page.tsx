@@ -27,13 +27,16 @@ export default function ClientPage({ }) {
     const pollingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const LongPollMessages = async () => {
         try {
-            const chat = await GetAllMessages(chatState.session);
-            if (chat.length !== chatState.chat.length) {
-                setChatState(prev => ({
-                    ...prev,
-                    chat: chat
-                }));
+            if (chatState.session !== "") {
+                const chat = await GetAllMessages(chatState.session);
+                if (chat.length !== chatState.chat.length) {
+                    setChatState(prev => ({
+                        ...prev,
+                        chat: chat
+                    }));
+                }
             }
+
 
         } catch (error) {
             console.error("Ошибка при получении сообщений:", error);
@@ -65,7 +68,7 @@ export default function ClientPage({ }) {
 
     const OnMessageSend = async () => {
         const messageValue = messageInputRef.current?.value;
-        if (!messageValue || messageValue.trim() === "") return;
+        if (!messageValue || messageValue.trim() === "" || chatState.session === "") return;
 
         if (messageInputRef.current) {
             messageInputRef.current.value = "";
@@ -92,8 +95,12 @@ export default function ClientPage({ }) {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const messageInputRef = useRef<HTMLInputElement>(null);
 
+    async function awaitSessionEstablish() {
+        await CreateAndLoadChat();
+    }
+
     useEffect(() => {
-        CreateAndLoadChat();
+        awaitSessionEstablish();
         return () => {
             if (pollingTimeoutRef.current) {
                 clearTimeout(pollingTimeoutRef.current);
@@ -131,7 +138,7 @@ export default function ClientPage({ }) {
 
                         <div className="flex-1 flex items-center justify-end gap-4 text-base font-medium">
                             {!chatState.operatorRequested && chatState.chat.length != 0 && (
-                                <Button 
+                                <Button
                                     isInverted
                                     onClick={() => setIsModalOpen(true)}
                                 >
