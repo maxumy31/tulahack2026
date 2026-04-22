@@ -34,6 +34,8 @@ docker compose up --build
 - **База данных**: localhost:5432 (PostgreSQL)
 - **Векторная база данных**: localhost:5433 (pgvector)
 
+Токен доступа по умолчанию: default-token
+
 ## Конфигурация переменных окружения
 
 Основные переменные окружения настраиваются в файле `docker-compose.yml` в секции `environment` для сервиса `backend`.
