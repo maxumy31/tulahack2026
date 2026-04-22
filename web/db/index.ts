@@ -20,5 +20,3 @@ async function initializeDatabase() {
     throw error;
   }
 }
-
-initializeDatabase();

@@ -183,7 +183,10 @@ export default function ClientPage({ }) {
                                 placeholder="Напишите сообщение..."
                                 className="input input-bordered flex-1 focus:outline-none focus:border-primary h-16"
                             />
-                            <SendMessageButton onClick={OnMessageSend} />
+                            <SendMessageButton
+                                onClick={OnMessageSend}
+                                disabled={chatState.session === ""}
+                            />
                         </form>
                     </div>
 

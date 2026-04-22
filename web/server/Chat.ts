@@ -7,7 +7,7 @@ import { GetRagResponse } from "./Rag";
 import { LazyCleanup } from "./Cleanup";
 import { GetUseBot } from "./BotState";
 
-setTimeout(LazyCleanup, 1000);
+//setTimeout(LazyCleanup, 1000);
 
 export async function StartNewChatSession() {
     const [newSession] = await db

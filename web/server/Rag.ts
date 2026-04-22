@@ -1,20 +1,26 @@
 'use server'
 
 export async function GetRagResponse(request: string) {
-    const response = await fetch(process.env.RAG_URI || "",
-        {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
+    try {
+        const response = await fetch(process.env.RAG_URI || "",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ "question": request }),
             },
-            body: JSON.stringify({ "question": request }),
-        },
-    );
-    const json = await response.json();
-    console.log(json);
-    const asnwer = json.answer;
-    const images = json.imageIds || [];
-    return [asnwer, images];
+        );
+        const json = await response.json();
+        console.log(json);
+        const asnwer = json.answer;
+        const images = json.imageIds || [];
+        return [asnwer, images];
+    } catch (error) {
+        console.log("Unable to contact rag microservice. Returning stub value.");
+        return ["Unable to contact rag microservice.", []];
+    }
+
 }
 
 export async function GetImage(id: string): Promise<any> {
