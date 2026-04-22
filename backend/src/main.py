@@ -1,11 +1,13 @@
+import logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 #ИНИЦИАЛИЗАЦИЯ БД ИЗ work_with_db.ipynb
-
 import json
 import psycopg2
 from psycopg2.extras import execute_batch
 
 DB_CONFIG = {
-    "host": "127.0.0.1",
+    "host": "rag_db",
     "port": 5433,
     "database": "ragdatabase",
     "user": "raguser",
@@ -64,7 +66,7 @@ for doc_idx, doc_chunks in enumerate(all_chunks):
 
         rows_to_insert.append((source_doc, chunk))
 
-print(f"Подготовлено {len(rows_to_insert)} чанков для вставки")
+logger.info(f"Подготовлено {len(rows_to_insert)} чанков для вставки")
 
 # 4. Подключаемся к БД
 conn = psycopg2.connect(**DB_CONFIG)
@@ -98,10 +100,10 @@ try:
                 page_size=500
             )
 
-    print("Данные успешно занесены в БД")
+    logger.info("Данные успешно занесены в БД")
 
 finally:
-    conn.close()
+    pass
 
 import zipfile
 from pathlib import Path
@@ -117,14 +119,6 @@ def to_pgvector(vec):
 
 TARGET_DOC = "01_Elicont_100___1_____04"
 
-conn = psycopg2.connect(
-    host="127.0.0.1",
-    port=5433,
-    database="ragdatabase",
-    user="raguser",
-    password="ragpassword"
-)
-
 cur = conn.cursor()
 
 cur.execute("""
@@ -135,7 +129,7 @@ cur.execute("""
 """, (TARGET_DOC,))
 
 dataset = cur.fetchall()
-print(f"Найдено {len(dataset)} чанков для {TARGET_DOC}")
+logger.info(f"Найдено {len(dataset)} чанков для {TARGET_DOC}")
 
 ids = []
 texts = []
@@ -166,7 +160,7 @@ conn.commit()
 cur.close()
 conn.close()
 
-print(f"Эмбеддинги для {TARGET_DOC} записаны")
+logger.info(f"Эмбеддинги для {TARGET_DOC} записаны")
 
 # КОНЕЦ ИНИЦИАЛИЗАЦИИ БД ИЗ work_with_db.ipynb
 
@@ -176,7 +170,7 @@ from starlette.status import HTTP_500_INTERNAL_SERVER_ERROR
 
 from src.schemas.chat import ChatRequest
 from src.database.database import SessionDep
-import logging
+
 from fastapi.middleware.cors import CORSMiddleware
 
 from pathlib import Path
@@ -208,8 +202,6 @@ def extract_image_ids(text: str) -> dict:
     cleaned_text = re.sub(r'\s+', ' ', cleaned_text).strip()
     return image_ids
 
-model = SentenceTransformer("e5_custom/kaggle/working/e5_custom")
-
 conn = psycopg2.connect(
     host="rag_db",
     port=5433,
@@ -229,8 +221,7 @@ client7 = OpenAI(
     api_key=api_key
   )
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+
 
 app = FastAPI(
     title="Tulahack2026 API",
@@ -353,7 +344,7 @@ async def get_answer(request: ChatRequest) -> dict:
         imageIds = extract_image_ids(search_results[2]["chunk"])
         return {"answer": content, "imageIds": imageIds}
     else:
-        print("Ошибка: LLM не вернул ответ")
+        logger.info("Ошибка: LLM не вернул ответ")
 
 
 async def get_img(img_id: str) -> FileResponse:
@@ -361,8 +352,8 @@ async def get_img(img_id: str) -> FileResponse:
     file_path = Path("src") / "data" / "img" / f"{img_id}.png"
 
     # Для отладки
-    print(f"Ищем файл: {file_path}")
-    print(f"Абсолютный путь: {file_path.absolute()}")
+    logger.info(f"Ищем файл: {file_path}")
+    logger.info(f"Абсолютный путь: {file_path.absolute()}")
 
     if ".." in img_id or "/" in img_id or "\\" in img_id:
         logger.warning(f"Подозрительный запрос: {img_id}")

@@ -15,4 +15,4 @@ COPY . .
 
 EXPOSE 3000
 
-CMD ["sh", "-c", "npm run db:generate && npm run db:migrate && npm run dev"]
+CMD ["sh", "-c", "npm run start"]
