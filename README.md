@@ -4,18 +4,22 @@
 
 ## Предварительные требования
 
-- Docker и Docker Compose установлены на вашей системе
-- Доступ в интернет (если используется OpenRouter)
+- Docker и Docker Compose
+- Токен Open Router / Локальная модель
+- Наличие модели для ретрива
 
 ## Быстрый старт
 
 ### 1. Клонирование и подготовка
 
 ```bash
-# Клонировать репозиторий (если еще не сделано)
 git clone <repository-url>
-cd tulahack2026-main
+cd tulahack2026
 ```
+
+### 2. Копирование модели ретривера
+
+Поместить модель e5_custom в папку пути backend/
 
 ### 2. Запуск Docker Compose
 
@@ -23,7 +27,7 @@ cd tulahack2026-main
 docker compose up --build
 ```
 
-### 3. Доступ к приложению
+### 4. Доступ к приложению
 
 - **Веб-приложение**: http://localhost:3000
 - **Бэкенд API**: http://localhost:8000
