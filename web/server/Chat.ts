@@ -12,11 +12,13 @@ setTimeout(LazyCleanup, 1000);
 export async function StartNewChatSession() {
     const [newSession] = await db
         .insert(chatSessions)
-        .values({})
+        .values({
+            status:"bot"
+        })
         .returning({ id: chatSessions.id });
 
     console.log(`[SERVER] Starting new database session with id : ${newSession.id}`);
-    return newSession.id;
+    return String(newSession.id);
 }
 
 export async function SendUserMessage(content: string, session: string) {
